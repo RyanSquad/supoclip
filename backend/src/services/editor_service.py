@@ -580,7 +580,11 @@ async def prepare_editor(ctx, task_id: str, clip_id: str, filename: str):
                 raise ValueError("Could not prepare the original video")
             from ..media.common import VALID_OUTPUT_FORMATS
 
-            output_format = source_settings.get("output_format") or "vertical"
+            output_format = (
+                clip.get("output_format")
+                or source_settings.get("output_format")
+                or "vertical"
+            )
             if output_format not in VALID_OUTPUT_FORMATS:
                 output_format = "vertical"
             # Split-screen and stacked layouts are a composed frame, not a

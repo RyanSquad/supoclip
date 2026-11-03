@@ -45,13 +45,13 @@ from ...stream_source import (
     fetch_stream_info,
 )
 from ...font_registry import is_font_accessible
-from ...clip_duration import normalize_clip_length, validate_clip_length
+from ...clip_duration import normalize_clip_lengths, validate_clip_lengths
 from ...clip_cleanup import (
     new_task_cleanup_settings,
     normalize_clip_cleanup_settings,
     updated_cleanup_settings,
 )
-from ...video_utils import VALID_OUTPUT_FORMATS
+from ...video_utils import VALID_OUTPUT_FORMATS, normalize_output_formats
 from ...admin_auth import require_admin_user, user_is_admin
 from ...source_submission import SourceAttempt
 import redis.asyncio as redis
@@ -303,6 +303,7 @@ def _merge_task_source_metadata(
     source_url: Any = None,
     source_type: Any = None,
     output_format: Any = None,
+    output_formats: Any = None,
     add_subtitles: Any = None,
     cleanup_settings: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
@@ -312,8 +313,17 @@ def _merge_task_source_metadata(
         merged["url"] = source_url
     if isinstance(source_type, str) and source_type:
         merged["source_type"] = source_type
-    if output_format in VALID_OUTPUT_FORMATS:
-        merged["output_format"] = output_format
+    formats = None
+    if output_formats is not None:
+        formats = normalize_output_formats(
+            output_formats,
+            fallback=output_format if output_format in VALID_OUTPUT_FORMATS else "vertical",
+        )
+    elif output_format in VALID_OUTPUT_FORMATS:
+        formats = [output_format]
+    if formats:
+        merged["output_formats"] = formats
+        merged["output_format"] = formats[0]
     if isinstance(add_subtitles, bool):
         merged["add_subtitles"] = add_subtitles
     if cleanup_settings:
@@ -512,16 +522,20 @@ async def _create_task(request: Request, db: AsyncSession, attempt: SourceAttemp
     )
     if processing_mode not in {"fast", "balanced", "quality"}:
         processing_mode = runtime_config.default_processing_mode
-    output_format = data.get("output_format", "vertical")
-    if output_format not in VALID_OUTPUT_FORMATS:
-        output_format = "vertical"
+    output_formats = normalize_output_formats(
+        data.get("output_formats", data.get("output_format", "vertical")),
+    )
+    output_format = output_formats[0]
     add_subtitles = data.get("add_subtitles", True)
     if not isinstance(add_subtitles, bool):
         add_subtitles = True
     try:
-        clip_length = validate_clip_length(data.get("clip_length", "auto"))
+        clip_lengths = validate_clip_lengths(
+            data.get("clip_lengths", data.get("clip_length", "auto"))
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from None
+    clip_length = clip_lengths[0]
     cleanup_settings = new_task_cleanup_settings(data)
     if not raw_source or not raw_source.get("url"):
         raise HTTPException(status_code=400, detail="Source URL is required")
@@ -538,8 +552,10 @@ async def _create_task(request: Request, db: AsyncSession, attempt: SourceAttemp
             "include_broll": include_broll,
             "processing_mode": processing_mode,
             "output_format": output_format,
+            "output_formats": output_formats,
             "add_subtitles": add_subtitles,
             "clip_length": clip_length,
+            "clip_lengths": clip_lengths,
             "cleanup_settings": cleanup_settings,
         },
     )
@@ -617,11 +633,13 @@ async def _create_task(request: Request, db: AsyncSession, attempt: SourceAttemp
                         {
                             "processing_job_id": processing_job_id,
                             "clip_length": clip_length,
+                            "clip_lengths": clip_lengths,
                             **_stream_resolution_metadata(stream_metadata),
                         },
                         source_url=raw_source["url"],
                         source_type=source_type,
                         output_format=output_format,
+                        output_formats=output_formats,
                         add_subtitles=add_subtitles,
                         cleanup_settings=cleanup_settings,
                     ),
@@ -1471,7 +1489,6 @@ async def resume_task(
 
             source_url = task.get("source_url")
             source_type = task.get("source_type")
-            output_format = "vertical"
             add_subtitles = True
 
             metadata = await _load_task_source_metadata(task_id, db=db)
@@ -1479,9 +1496,10 @@ async def resume_task(
                 source_url = metadata.get("url")
             if not source_type:
                 source_type = metadata.get("source_type")
-            of = metadata.get("output_format", output_format)
-            if of in VALID_OUTPUT_FORMATS:
-                output_format = of
+            output_formats = normalize_output_formats(
+                metadata.get("output_formats", metadata.get("output_format", "vertical")),
+            )
+            output_format = output_formats[0]
             asub = metadata.get("add_subtitles", add_subtitles)
             if isinstance(asub, bool):
                 add_subtitles = asub
@@ -1543,7 +1561,9 @@ async def resume_task(
                         output_format,
                         add_subtitles,
                         cleanup_settings,
-                        normalize_clip_length(metadata.get("clip_length")),
+                        normalize_clip_lengths(
+                            metadata.get("clip_lengths", metadata.get("clip_length")),
+                        )[0],
                         _job_id=processing_job_id,
                     )
                 except Exception:

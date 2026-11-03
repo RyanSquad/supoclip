@@ -49,6 +49,8 @@
   "customCaptionColor": "自定义字幕颜色",
   "livePreview": "实时预览",
   "framing": "构图",
+  "framingMultiHint": "可多选 — 将按每种构图各生成一组片段",
+  "framingCount": "{count} 种构图",
   "framingOptions": {
     "vertical": {
       "label": "自动 9:16",
@@ -124,7 +126,9 @@
     "short": "短（15–30秒）",
     "medium": "中（30–60秒）",
     "long": "长（1–2分钟）",
-    "hint": "目标时长为移除停顿和语气词之前的时长。您的选择将保存为默认值。",
+    "extra_long": "超长（2–5分钟）",
+    "count": "{count} 种时长",
+    "hint": "可多选 — 将按每种时长各生成一组片段（移除停顿和语气词之前）。您的选择将保存为默认值。",
     "saveError": "无法保存默认值。此视频仍会使用您的选择。"
   }
 }

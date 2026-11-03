@@ -48,6 +48,7 @@ describe("/api/preferences", () => {
       fontColor: "#123456",
       notifyOnCompletion: false,
       clipLength: "auto",
+      clipLengths: ["auto"],
     });
   });
 
@@ -124,6 +125,7 @@ describe("/api/preferences", () => {
       fontColor: "#FFFFFF",
       notifyOnCompletion: true,
       clipLength: "auto",
+      clipLengths: ["auto"],
     });
   });
   it.each([{ fontSize: 0 }, { fontSize: null }, { fontSize: 24.5 }, { fontFamily: false }, { fontColor: "" }, null, []])("rejects invalid falsy or non-object preferences: %j", async (body) => {
@@ -146,8 +148,32 @@ it("saves clip length without overwriting unrelated preferences", async () => {
     body: JSON.stringify({ clipLength: "long" }),
   }) as never);
   expect(response.status).toBe(200);
-  expect((await response.json()).clipLength).toBe("long");
+  await expect(response.json()).resolves.toMatchObject({
+    clipLength: "long",
+    clipLengths: ["long"],
+  });
   expect(update.mock.calls[0][0].data).toEqual({ default_clip_length: "long" });
+});
+
+it("saves multiple clip lengths as a comma-separated default", async () => {
+  vi.mocked(getServerSession).mockResolvedValue({ user: { id: "user-1" } } as never);
+  const update = vi.fn().mockResolvedValue({
+    default_font_family: "TikTokSans-Regular",
+    default_font_size: 24,
+    default_font_color: "#FFFFFF",
+    notify_on_completion: true,
+    default_clip_length: "short,extra_long",
+  });
+  vi.mocked(getPrismaClient).mockReturnValue({ user: { update } } as never);
+  const response = await PATCH(new Request("http://localhost/api/preferences", {
+    method: "PATCH", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clipLengths: ["short", "extra_long"] }),
+  }) as never);
+  expect(response.status).toBe(200);
+  const body = await response.json();
+  expect(body.clipLength).toBe("short");
+  expect(body.clipLengths).toEqual(["short", "extra_long"]);
+  expect(update.mock.calls[0][0].data).toEqual({ default_clip_length: "short,extra_long" });
 });
 
 it.each([null, "", "custom", 120, true, {}])("rejects invalid clip length: %j", async (clipLength) => {

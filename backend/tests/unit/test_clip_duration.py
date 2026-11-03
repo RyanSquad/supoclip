@@ -6,7 +6,14 @@ from unittest.mock import AsyncMock
 import pytest
 
 from src import ai, video_utils
-from src.clip_duration import CLIP_DURATIONS, clip_duration, normalize_clip_length, validate_clip_length
+from src.clip_duration import (
+    CLIP_DURATIONS,
+    clip_duration,
+    normalize_clip_length,
+    normalize_clip_lengths,
+    validate_clip_length,
+    validate_clip_lengths,
+)
 from src.services.task_service import TaskService
 from src.services.video_service import VideoService
 from src.services import video_service
@@ -24,6 +31,7 @@ def transcript(seconds=1800):
 
 @pytest.mark.parametrize("preset,minimum,maximum", [
     ("auto", 15, 60), ("short", 15, 30), ("medium", 30, 60), ("long", 60, 120),
+    ("extra_long", 120, 300),
 ])
 def test_prompts_agree_on_requested_range(preset, minimum, maximum):
     system = ai.build_transcript_system_prompt(preset)
@@ -34,6 +42,9 @@ def test_prompts_agree_on_requested_range(preset, minimum, maximum):
     if preset == "long":
         assert "15-60 seconds" not in system
         assert "25-50 seconds" not in prompt
+    if preset == "extra_long":
+        assert "60-120 seconds" not in system
+        assert "75-110 seconds" not in prompt
 
 
 @pytest.mark.parametrize("value", [None, True, 30, "", "LONG", "custom", [], {}])
@@ -96,17 +107,44 @@ def test_every_preset_leaves_room_to_finish_a_sentence(preset):
 def test_analysis_cache_is_separate_for_every_preset():
     source_key = TaskService._build_cache_key("upload://talk.mp4", "video_url", "fast")
     keys = [TaskService._build_analysis_cache_key(source_key, preset)
-            for preset in ("auto", "short", "medium", "long")]
+            for preset in ("auto", "short", "medium", "long", "extra_long")]
     assert keys[0] == source_key
-    assert len(set(keys)) == 4
+    assert len(set(keys)) == 5
+
+
+@pytest.mark.parametrize("value,expected", [
+    ("short", ["short"]),
+    (["short", "medium", "short"], ["short", "medium"]),
+    ("short,extra_long", ["short", "extra_long"]),
+    (None, ["auto"]),
+    ([], ["auto"]),
+])
+def test_normalize_clip_lengths(value, expected):
+    assert normalize_clip_lengths(value) == expected
+
+
+def test_validate_clip_lengths_rejects_empty_and_unknown():
+    with pytest.raises(ValueError):
+        validate_clip_lengths([])
+    with pytest.raises(ValueError):
+        validate_clip_lengths(["short", "custom"])
+    assert validate_clip_lengths(["medium", "extra_long"]) == ["medium", "extra_long"]
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("preset,expected_end", [("short", 30), ("medium", 60), ("long", 120)])
+@pytest.mark.parametrize("preset,expected_end", [
+    ("short", 30), ("medium", 60), ("long", 120), ("extra_long", 300),
+])
 async def test_single_and_batch_rendering_respect_caps(tmp_path, monkeypatch, preset, expected_end):
     source = tmp_path / "source.mp4"
     source.touch()
-    segment = {"start_time": "00:00", "end_time": "02:10", "text": "Useful spoken content.", "relevance_score": 0.8, "reasoning": "A complete thought."}
+    segment = {
+        "start_time": "00:00",
+        "end_time": "06:00",
+        "text": "Useful spoken content.",
+        "relevance_score": 0.8,
+        "reasoning": "A complete thought.",
+    }
     rendered = []
     def render(*args, **kwargs):
         rendered.append(args[10])

@@ -25,16 +25,19 @@ test("full-frame framing can be selected and submitted on mobile", async ({ page
   });
   await page.goto("/");
   await page.getByRole("button", { name: "Auto 9:16", exact: true }).click();
-  const option = page.getByRole("radio", { name: /Full frame 9:16/ });
+  const auto = page.getByRole("checkbox", { name: /Auto 9:16/ });
+  const option = page.getByRole("checkbox", { name: /Full frame 9:16/ });
   await option.click();
   await expect(option).toHaveAttribute("aria-checked", "true");
+  await expect(auto).toHaveAttribute("aria-checked", "true");
   await page.screenshot({ path: "test-results/full-frame-framing-mobile.png" });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.keyboard.press("Escape");
   await page.getByPlaceholder("Paste a YouTube, Twitch, or Kick VOD/clip link").fill("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
   await page.getByRole("button", { name: "Generate clips", exact: true }).click();
   await expect(page).toHaveURL(/\/tasks\/one$/);
-  expect(submitted?.output_format).toBe("vertical_fit");
+  expect(submitted?.output_format).toBe("vertical");
+  expect(submitted?.output_formats).toEqual(["vertical", "vertical_fit"]);
 });
 
 
@@ -231,10 +234,13 @@ for (const width of [390, 1280]) {
     await page.route(/\/api\/tasks\/?(\?.*)?$/, route => route.fulfill({ json: { tasks: [] } }));
     await page.route("**/api/announcements**", route => route.fulfill({ json: { announcements: [] } }));
     await page.route("**/api/service-status/video-downloads", route => route.fulfill({ json: { component: { status: "operational" } } }));
-    let preference = "medium";
+    let preference: string[] = ["medium"];
     await page.route("**/api/preferences", async route => {
-      if (route.request().method() === "PATCH") preference = route.request().postDataJSON().clipLength;
-      await route.fulfill({ json: { clipLength: preference } });
+      if (route.request().method() === "PATCH") {
+        const body = route.request().postDataJSON();
+        preference = body.clipLengths ?? [body.clipLength];
+      }
+      await route.fulfill({ json: { clipLength: preference[0], clipLengths: preference } });
     });
     let submitted: Record<string, unknown> | undefined;
     await page.route("**/api/tasks/create", async route => {
@@ -245,18 +251,20 @@ for (const width of [390, 1280]) {
     const picker = page.getByRole("button", { name: "Clip length", exact: true });
     await expect(picker).toContainText("Medium (30–60s)");
     await picker.click();
-    await page.getByRole("radio", { name: "Long (1–2 min)", exact: true }).click();
-    await expect(page.getByRole("radio", { name: "Long (1–2 min)", exact: true })).toHaveAttribute("aria-checked", "true");
-    await expect.poll(() => preference).toBe("long");
+    await page.getByRole("checkbox", { name: "Long (1–2 min)", exact: true }).click();
+    await expect(page.getByRole("checkbox", { name: "Long (1–2 min)", exact: true })).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByRole("checkbox", { name: "Medium (30–60s)", exact: true })).toHaveAttribute("aria-checked", "true");
+    await expect.poll(() => preference).toEqual(["medium", "long"]);
     await page.screenshot({ path: `test-results/clip-length-${width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.keyboard.press("Escape");
     await page.reload();
-    await expect(picker).toContainText("Long (1–2 min)");
+    await expect(picker).toContainText("2 lengths");
     await page.getByPlaceholder("Paste a YouTube, Twitch, or Kick VOD/clip link").fill("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     await page.getByRole("button", { name: "Generate clips", exact: true }).click();
     await expect(page).toHaveURL(/\/tasks\/one$/);
-    expect(submitted?.clip_length).toBe("long");
+    expect(submitted?.clip_length).toBe("medium");
+    expect(submitted?.clip_lengths).toEqual(["medium", "long"]);
   });
 }
 
@@ -266,7 +274,7 @@ for (const clipLength of ["auto", "long"]) {
     await page.route(/\/api\/tasks\/?(\?.*)?$/, route => route.fulfill({ json: { tasks: [] } }));
     await page.route("**/api/announcements**", route => route.fulfill({ json: { announcements: [] } }));
     await page.route("**/api/service-status/video-downloads", route => route.fulfill({ json: { component: { status: "operational" } } }));
-    await page.route("**/api/preferences", route => route.fulfill({ json: { clipLength } }));
+    await page.route("**/api/preferences", route => route.fulfill({ json: { clipLength, clipLengths: [clipLength] } }));
     // Widest composer: the server offers B-roll and it is switched on.
     await page.route("**/api/broll/status", route => route.fulfill({ json: { configured: true, provider: "pexels" } }));
     await page.goto("/");
@@ -307,7 +315,7 @@ test("captions turn off from the caption style menu and the composer stays on on
   await page.route(/\/api\/tasks\/?(\?.*)?$/, route => route.fulfill({ json: { tasks: [] } }));
   await page.route("**/api/announcements**", route => route.fulfill({ json: { announcements: [] } }));
   await page.route("**/api/service-status/video-downloads", route => route.fulfill({ json: { component: { status: "operational" } } }));
-  await page.route("**/api/preferences", route => route.fulfill({ json: { clipLength: "long" } }));
+  await page.route("**/api/preferences", route => route.fulfill({ json: { clipLength: "long", clipLengths: ["long"] } }));
   let submitted: Record<string, unknown> | undefined;
   await page.route("**/api/tasks/create", async route => {
     submitted = route.request().postDataJSON();

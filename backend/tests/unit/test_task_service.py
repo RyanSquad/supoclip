@@ -96,6 +96,16 @@ def build_task_service() -> TaskService:
             "key_topics": [],
             "transcript": "Transcript",
             "analysis_json": "{}",
+            "analyses_by_length": {},
+        }
+    )
+    service._load_task_source_settings = AsyncMock(
+        return_value={
+            "output_format": "vertical",
+            "output_formats": ["vertical"],
+            "add_subtitles": True,
+            "clip_length": "auto",
+            "clip_lengths": ["auto"],
         }
     )
     return service
@@ -762,13 +772,28 @@ async def test_worker_does_not_process_uncharged_over_limit_task(monkeypatch):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("preset,cap", [("short", 30), ("medium", 60), ("long", 120)])
+@pytest.mark.parametrize("preset,cap", [
+    ("short", 30), ("medium", 60), ("long", 120), ("extra_long", 300),
+])
 async def test_task_applies_the_same_length_to_selection_cache_and_render(preset, cap):
     service = build_task_service()
+    service._load_task_source_settings = AsyncMock(
+        return_value={
+            "output_format": "vertical",
+            "output_formats": ["vertical"],
+            "add_subtitles": True,
+            "clip_length": preset,
+            "clip_lengths": [preset],
+        }
+    )
+    service.video_service.process_video_complete.return_value["analyses_by_length"] = {
+        preset: "{}",
+    }
     await service.process_task(
         task_id="task-1", url="upload://source.mp4", source_type="upload", clip_length=preset,
     )
     assert service.video_service.process_video_complete.await_args.kwargs["clip_length"] == preset
+    assert service.video_service.process_video_complete.await_args.kwargs["clip_lengths"] == [preset]
     assert service.video_service.create_single_clip.await_args.kwargs["max_clip_seconds"] == cap
     source_key = TaskService._build_cache_key("upload://source.mp4", "upload", "fast")
     analysis_key = TaskService._build_analysis_cache_key(source_key, preset)
@@ -786,8 +811,55 @@ async def test_task_applies_the_same_length_to_selection_cache_and_render(preset
 
 
 @pytest.mark.asyncio
+async def test_multi_length_and_format_render_jobs():
+    service = build_task_service()
+    service._load_task_source_settings = AsyncMock(
+        return_value={
+            "output_format": "vertical",
+            "output_formats": ["vertical", "original"],
+            "add_subtitles": True,
+            "clip_length": "short",
+            "clip_lengths": ["short", "long"],
+        }
+    )
+    service.video_service.process_video_complete.return_value = {
+        "clips": [],
+        "segments_to_render": [
+            {"start": 0, "end": 20, "clip_length": "short"},
+            {"start": 30, "end": 100, "clip_length": "long"},
+        ],
+        "video_path": "/tmp/source.mp4",
+        "segments": [],
+        "summary": None,
+        "key_topics": [],
+        "transcript": "Transcript",
+        "analysis_json": "{}",
+        "analyses_by_length": {"short": "{}", "long": "{}"},
+    }
+    service.clip_repo.create_clip = AsyncMock(side_effect=["c1", "c2", "c3", "c4"])
+    await service.process_task(
+        task_id="task-1", url="upload://source.mp4", source_type="upload", clip_length="short",
+    )
+    assert service.video_service.create_single_clip.await_count == 4
+    caps = [
+        call.kwargs["max_clip_seconds"]
+        for call in service.video_service.create_single_clip.await_args_list
+    ]
+    assert caps == [30, 30, 120, 120]
+
+
+@pytest.mark.asyncio
 async def test_preset_task_reuses_cached_transcript_with_its_own_analysis():
     service = build_task_service()
+    service._load_task_source_settings = AsyncMock(
+        return_value={
+            "output_format": "vertical",
+            "output_formats": ["vertical"],
+            "add_subtitles": True,
+            "clip_length": "long",
+            "clip_lengths": ["long"],
+        }
+    )
     source_key = TaskService._build_cache_key("upload://source.mp4", "upload", "fast")
     rows = {
         source_key: {"transcript_text": "Shared transcript", "analysis_json": '{"auto": true}'},
@@ -800,6 +872,7 @@ async def test_preset_task_reuses_cached_transcript_with_its_own_analysis():
     kwargs = service.video_service.process_video_complete.await_args.kwargs
     assert kwargs["cached_transcript"] == "Shared transcript"
     assert kwargs["cached_analysis_json"] == '{"long": true}'
+    assert kwargs["cached_analyses"]["long"] == '{"long": true}'
 
 
 @pytest.mark.asyncio

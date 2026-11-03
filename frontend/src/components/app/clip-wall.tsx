@@ -16,6 +16,8 @@ import { getClipUrl } from "@/lib/clip-actions";
 import { formatClipDuration } from "@/lib/generations";
 import { cn } from "@/lib/utils";
 
+export type ClipFraming = "vertical" | "vertical_fit" | "vertical_pan" | "vertical_split" | "original";
+
 export interface WallClip {
   id: string;
   filename: string;
@@ -33,24 +35,34 @@ export interface WallClip {
   shareability_score: number;
   hook_type: string | null;
   hook_title: string | null;
+  output_format?: ClipFraming | string | null;
 }
 
 function clipTitle(clip: WallClip, fallback: string) {
   return clip.hook_title || fallback;
 }
 
-export function ClipTile({ clip, taskId, busy, best, editable, onOpen, onDownload, onDelete }: {
+const FRAMING_KEYS = new Set(["vertical", "vertical_fit", "vertical_pan", "vertical_split", "original"]);
+
+function framingLabel(t: ReturnType<typeof useTranslations<"task">>, format?: string | null) {
+  if (!format || !FRAMING_KEYS.has(format)) return null;
+  return t(`framing.${format as ClipFraming}`);
+}
+
+export function ClipTile({ clip, taskId, busy, best, editable, showFraming, onOpen, onDownload, onDelete }: {
   clip: WallClip;
   taskId: string;
   busy: boolean;
   best: boolean;
   editable: boolean;
+  showFraming?: boolean;
   onOpen: () => void;
   onDownload: () => void;
   onDelete?: () => void;
 }) {
   const t = useTranslations("task");
   const title = clipTitle(clip, t("clipNumber", { order: clip.clip_order }));
+  const framing = showFraming ? framingLabel(t, clip.output_format) : null;
   return (
     <article className="group @container animate-rise">
       <button
@@ -82,7 +94,10 @@ export function ClipTile({ clip, taskId, busy, best, editable, onOpen, onDownloa
       </button>
       <div className="mt-2.5 px-0.5">
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{title}</h3>
-        <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{clip.start_time} – {clip.end_time}</p>
+        <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+          {clip.start_time} – {clip.end_time}
+          {framing ? ` · ${framing}` : null}
+        </p>
         <div className="mt-2 flex items-center gap-1">
           <Button size="sm" variant="outline" className="h-7 flex-1 px-2 text-xs" onClick={onDownload} disabled={busy} aria-label={t("downloadNamed", { title })}>
             {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}<span className="hidden @min-[190px]:inline">{t("download")}</span>
@@ -160,6 +175,7 @@ export function ClipFocus({ clip, taskId, index, total, busy, editable, onNaviga
                   <DialogTitle className="font-display text-xl font-bold leading-tight">{clipTitle(clip, t("clipNumber", { order: clip.clip_order }))}</DialogTitle>
                   <DialogDescription className="mt-1 tabular-nums">
                     {clip.start_time} – {clip.end_time} · {formatClipDuration(clip.duration)}
+                    {framingLabel(t, clip.output_format) ? ` · ${framingLabel(t, clip.output_format)}` : null}
                   </DialogDescription>
                 </div>
 

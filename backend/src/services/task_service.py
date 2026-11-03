@@ -34,7 +34,8 @@ from ..config import Config, get_config
 from ..youtube_utils import cleanup_downloaded_files, extract_video_id
 from ..youtube_source import load_time_map, localize_segment, restore_clip_timeline, transcript_source_for
 from ..clip_cleanup import normalize_clip_cleanup_settings
-from ..clip_duration import clip_duration, validate_clip_length
+from ..clip_duration import clip_duration, normalize_clip_lengths, validate_clip_length
+from ..video_utils import normalize_output_formats
 from ..ai import TRANSCRIPT_ANALYSIS_CACHE_VERSION
 from ..clip_source_map import load_clip_caption_settings
 from ..media_storage import MediaStorage, media_work
@@ -390,27 +391,47 @@ class TaskService(ClipEditingMixin):
             cache_key = self._build_cache_key(
                 url, source_type, processing_mode, download_quality
             )
-            analysis_cache_key = self._build_analysis_cache_key(cache_key, clip_length)
+            # Honour every length selected at create/resume time.
+            early_settings = await self._load_task_source_settings(task_id)
+            try:
+                length_fallback = validate_clip_length(clip_length)
+            except ValueError:
+                length_fallback = "auto"
+            clip_lengths = normalize_clip_lengths(
+                early_settings.get(
+                    "clip_lengths", early_settings.get("clip_length", clip_length)
+                ),
+                fallback=length_fallback,
+            )
+            clip_length = clip_lengths[0]
 
             cache_entry = await self.cache_repo.get_cache(self.db, cache_key)
             cached_transcript = (
                 cache_entry.get("transcript_text") if cache_entry else None
             )
-            analysis_entry = (
-                cache_entry
-                if analysis_cache_key == cache_key
-                else await self.cache_repo.get_cache(self.db, analysis_cache_key)
-            )
-            cached_analysis_json = (
-                analysis_entry.get("analysis_json") if analysis_entry else None
-            )
             # Performance loop: feed this creator's real audience data back into
             # clip selection. Personalized analyses bypass the shared analysis
             # cache so one creator's history never shapes another's clips.
             performance_context = await self._load_performance_context(user_id)
-            if performance_context:
-                cached_analysis_json = None
-            cache_hit = bool(cached_transcript and cached_analysis_json)
+            cached_analyses: Dict[str, Optional[str]] = {}
+            for length in clip_lengths:
+                if performance_context:
+                    cached_analyses[length] = None
+                    continue
+                analysis_key = self._build_analysis_cache_key(cache_key, length)
+                if analysis_key == cache_key:
+                    cached_analyses[length] = (
+                        cache_entry.get("analysis_json") if cache_entry else None
+                    )
+                else:
+                    analysis_entry = await self.cache_repo.get_cache(self.db, analysis_key)
+                    cached_analyses[length] = (
+                        analysis_entry.get("analysis_json") if analysis_entry else None
+                    )
+            cached_analysis_json = cached_analyses.get(clip_length)
+            cache_hit = bool(
+                cached_transcript and all(cached_analyses.get(length) for length in clip_lengths)
+            )
 
             await self.task_repo.update_task_runtime_metadata(
                 self.db,
@@ -474,6 +495,8 @@ class TaskService(ClipEditingMixin):
                 should_cancel=should_cancel,
                 performance_context=performance_context,
                 clip_length=clip_length,
+                clip_lengths=clip_lengths,
+                cached_analyses=cached_analyses,
             )
             stage_timings["pipeline_seconds"] = round(
                 perf_counter() - pipeline_start, 3
@@ -500,6 +523,11 @@ class TaskService(ClipEditingMixin):
                     "No usable clip segments were selected for this video."
                 )
 
+            analyses_by_length = dict(result.get("analyses_by_length") or {})
+            if not analyses_by_length and result.get("analysis_json"):
+                # Older pipeline results only returned a single analysis payload.
+                analyses_by_length = {clip_length: result["analysis_json"]}
+            auto_analysis = analyses_by_length.get("auto") if "auto" in clip_lengths else None
             await self.cache_repo.upsert_cache(
                 self.db,
                 cache_key=cache_key,
@@ -508,23 +536,37 @@ class TaskService(ClipEditingMixin):
                 video_path=MediaStorage().source_reference(url) if url.startswith("upload://s3/") else result.get("video_path"),
                 transcript_text=result.get("transcript"),
                 analysis_json=(
-                    result.get("analysis_json")
-                    if not performance_context and analysis_cache_key == cache_key
+                    auto_analysis
+                    if not performance_context and auto_analysis
                     else None
                 ),
             )
-            if not performance_context and analysis_cache_key != cache_key:
-                await self.cache_repo.upsert_cache(
-                    self.db,
-                    cache_key=analysis_cache_key,
-                    source_url=url,
-                    source_type=source_type,
-                    analysis_json=result.get("analysis_json"),
-                )
+            if not performance_context:
+                for length, analysis_json in analyses_by_length.items():
+                    if length == "auto" or not analysis_json:
+                        continue
+                    await self.cache_repo.upsert_cache(
+                        self.db,
+                        cache_key=self._build_analysis_cache_key(cache_key, length),
+                        source_url=url,
+                        source_type=source_type,
+                        analysis_json=analysis_json,
+                    )
 
             video_path = Path(result["video_path"])
             time_map = await run_in_thread(load_time_map, video_path)
-            total_clips = len(segments_to_render)
+            # Honour every framing format selected at create/resume time.
+            source_settings = early_settings
+            output_formats = normalize_output_formats(
+                source_settings.get("output_formats", source_settings.get("output_format", output_format)),
+                fallback=output_format,
+            )
+            render_jobs = [
+                (segment, framing)
+                for segment in segments_to_render
+                for framing in output_formats
+            ]
+            total_clips = len(render_jobs)
             clips_output_dir = Path(self.config.temp_dir) / "clips"
             clips_output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -542,7 +584,7 @@ class TaskService(ClipEditingMixin):
             include_broll = bool(task_row.get("include_broll"))
             broll_session = BRollSession()
 
-            for i, segment in enumerate(segments_to_render):
+            for i, (segment, framing) in enumerate(render_jobs):
                 # Check cancellation
                 await check_cancelled()
 
@@ -558,6 +600,10 @@ class TaskService(ClipEditingMixin):
                 # A partial download is a concatenated timeline. Render against
                 # local timestamps, then store the clip against the source.
                 render_segment = localize_segment(segment, time_map) if time_map else segment
+                segment_length = normalize_clip_lengths(
+                    segment.get("clip_length", clip_length),
+                    fallback=clip_length,
+                )[0]
                 clip_info = await self.video_service.create_single_clip(
                     video_path,
                     render_segment,
@@ -567,11 +613,11 @@ class TaskService(ClipEditingMixin):
                     font_size,
                     font_color,
                     caption_template,
-                    output_format,
+                    framing,
                     add_subtitles,
                     normalized_cleanup_settings,
                     max_short_side=output_short_side,
-                    max_clip_seconds=clip_duration(clip_length).maximum,
+                    max_clip_seconds=clip_duration(segment_length).maximum,
                     include_broll=include_broll,
                     broll_session=broll_session,
                 )
@@ -606,6 +652,7 @@ class TaskService(ClipEditingMixin):
                         shareability_score=clip_info.get("shareability_score", 0),
                         hook_type=clip_info.get("hook_type"),
                         hook_title=clip_info.get("hook_title"),
+                        output_format=clip_info.get("output_format") or framing,
                     )
 
                     # Update task's clip IDs array

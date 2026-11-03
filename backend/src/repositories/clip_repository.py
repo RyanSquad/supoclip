@@ -41,6 +41,7 @@ class ClipRepository:
         shareability_score: int = 0,
         hook_type: Optional[str] = None,
         hook_title: Optional[str] = None,
+        output_format: Optional[str] = None,
         clip_id: Optional[str] = None,
     ) -> str:
         """Create a new clip record and return its ID."""
@@ -73,12 +74,12 @@ class ClipRepository:
                         (id, task_id, filename, file_path, start_time, end_time, duration,
                          text, relevance_score, reasoning, clip_order,
                          virality_score, hook_score, engagement_score, value_score, shareability_score, hook_type,
-                         hook_title, created_at)
+                         hook_title, output_format, created_at)
                         VALUES
                         (:id, :task_id, :filename, :file_path, :start_time, :end_time, :duration,
                          :text, :relevance_score, :reasoning, :clip_order,
                          :virality_score, :hook_score, :engagement_score, :value_score, :shareability_score, :hook_type,
-                         :hook_title, NOW())
+                         :hook_title, :output_format, NOW())
                         ON CONFLICT (task_id, clip_order) DO UPDATE SET
                             filename = EXCLUDED.filename,
                             file_path = EXCLUDED.file_path,
@@ -95,6 +96,7 @@ class ClipRepository:
                             shareability_score = EXCLUDED.shareability_score,
                             hook_type = EXCLUDED.hook_type,
                             hook_title = EXCLUDED.hook_title,
+                            output_format = EXCLUDED.output_format,
                             updated_at = NOW()
                         RETURNING id
                     """),
@@ -107,6 +109,7 @@ class ClipRepository:
                         "shareability_score": shareability_score,
                         "hook_type": hook_type,
                         "hook_title": hook_title,
+                        "output_format": output_format,
                     },
                 )
         except DBAPIError as exc:
@@ -150,7 +153,7 @@ class ClipRepository:
                         SELECT id, filename, file_path, start_time, end_time, duration,
                                text, relevance_score, reasoning, clip_order, created_at,
                                virality_score, hook_score, engagement_score, value_score, shareability_score, hook_type,
-                               hook_title
+                               hook_title, output_format
                         FROM generated_clips
                         WHERE task_id = :task_id
                         ORDER BY clip_order ASC
@@ -194,6 +197,7 @@ class ClipRepository:
                     "shareability_score": getattr(row, "shareability_score", 0) or 0,
                     "hook_type": getattr(row, "hook_type", None),
                     "hook_title": getattr(row, "hook_title", None),
+                    "output_format": getattr(row, "output_format", None),
                 }
             )
 
@@ -260,7 +264,7 @@ class ClipRepository:
                         SELECT id, task_id, filename, file_path, start_time, end_time, duration,
                                text, relevance_score, reasoning, clip_order,
                                virality_score, hook_score, engagement_score, value_score, shareability_score, hook_type,
-                               hook_title, created_at
+                               hook_title, output_format, created_at
                         FROM generated_clips
                         WHERE id = :clip_id
                         """
@@ -304,6 +308,7 @@ class ClipRepository:
             "shareability_score": getattr(row, "shareability_score", 0) or 0,
             "hook_type": getattr(row, "hook_type", None),
             "hook_title": getattr(row, "hook_title", None),
+            "output_format": getattr(row, "output_format", None),
             "created_at": row.created_at.isoformat(),
             "video_url": f"/tasks/{row.task_id}/clips/{row.id}/file",
         }

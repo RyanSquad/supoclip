@@ -98,6 +98,13 @@
   "deleteClipTitle": "Clip löschen",
   "deleteClipBody": "Willst du diesen Clip wirklich löschen? Das lässt sich nicht rückgängig machen.",
   "clipNumber": "Clip {order}",
+  "framing": {
+    "vertical": "Auto 9:16",
+    "vertical_fit": "Full frame",
+    "vertical_pan": "Speaker pan",
+    "vertical_split": "Split-screen",
+    "original": "Original"
+  },
   "topPick": "Top-Auswahl",
   "preview": "{title} in der Vorschau",
   "downloadNamed": "{title} herunterladen",

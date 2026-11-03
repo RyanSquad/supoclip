@@ -74,7 +74,7 @@ it("sends the caption defaults saved in Settings with a new task", async () => {
   fetchMock.mockImplementation(async (input, init) => {
     const url = String(input);
     if (url.includes("/api/preferences")) {
-      return Response.json({ fontFamily: "Inter", fontSize: 24, fontColor: "#FFD700", clipLength: "auto" });
+      return Response.json({ fontFamily: "Inter", fontSize: 24, fontColor: "#FFD700", clipLength: "auto", clipLengths: ["auto"] });
     }
     if (url.includes("/api/tasks/create")) return Response.json({ task_id: "task-1" });
     return defaultFetch(input, init);

@@ -167,14 +167,28 @@ async def test_unreadable_or_long_upload_uses_no_minutes(monkeypatch, creation, 
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("preset", ["auto", "short", "medium", "long"])
+@pytest.mark.parametrize("preset", ["auto", "short", "medium", "long", "extra_long"])
 async def test_clip_length_is_persisted_and_queued(monkeypatch, creation, preset):
     request, _, queue, _ = creation
     request.json.return_value["clip_length"] = preset
     monkeypatch.setattr(tasks, "async_get_youtube_video_info", AsyncMock(return_value={"duration": 300}))
     await tasks.create_task(request, db=None)
-    assert tasks._save_task_source_metadata.await_args.args[1]["clip_length"] == preset
+    saved = tasks._save_task_source_metadata.await_args.args[1]
+    assert saved["clip_length"] == preset
+    assert saved["clip_lengths"] == [preset]
     assert queue.enqueue_processing_job.await_args.args[-1] == preset
+
+
+@pytest.mark.asyncio
+async def test_multiple_clip_lengths_are_persisted_and_queued(monkeypatch, creation):
+    request, _, queue, _ = creation
+    request.json.return_value["clip_lengths"] = ["short", "extra_long", "short"]
+    monkeypatch.setattr(tasks, "async_get_youtube_video_info", AsyncMock(return_value={"duration": 300}))
+    await tasks.create_task(request, db=None)
+    saved = tasks._save_task_source_metadata.await_args.args[1]
+    assert saved["clip_length"] == "short"
+    assert saved["clip_lengths"] == ["short", "extra_long"]
+    assert queue.enqueue_processing_job.await_args.args[-1] == "short"
 
 
 @pytest.mark.asyncio

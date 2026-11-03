@@ -37,6 +37,7 @@ from ..youtube_source import (
     persist_cache_sidecar,
 )
 from ..video_utils import (
+    VALID_OUTPUT_FORMATS,
     get_video_transcript,
     create_clips_with_transitions,
     create_optimized_clip,
@@ -62,7 +63,7 @@ from ..clip_source_map import (
 )
 from ..ai import get_most_relevant_parts_by_transcript, max_final_clips_for_duration
 from ..clip_openings import OPENING_HOOK_PENALTY, opening_text_issue, review_opening
-from ..clip_duration import clip_duration
+from ..clip_duration import clip_duration, normalize_clip_lengths
 from ..config import get_config
 from ..media.source_limits import normalize_source_media
 from ..media.upload_ingest import (
@@ -554,7 +555,7 @@ class VideoService:
     ) -> str:
         """
         Generate transcript from video using the configured provider
-        (assemblyai, whisper, or youtube_captions).
+        (elevenlabs, assemblyai, whisper, or youtube_captions).
         Runs in thread pool to avoid blocking.
         """
         logger.info(f"Generating transcript for: {video_path}")
@@ -669,8 +670,9 @@ class VideoService:
                             normalize_source_ranges(segment.get("source_ranges")),
                             cleanup_settings,
                         )
+                    segment_format = segment.get("output_format") or output_format
                     placements = await VideoService.plan_broll(
-                        video_path, keep_ranges, output_format, max_short_side, session
+                        video_path, keep_ranges, segment_format, max_short_side, session
                     )
                 segment["broll"] = placements
                 segment["broll_overlays"] = await broll_overlays_for(placements)
@@ -856,6 +858,9 @@ class VideoService:
                 "shareability_score": segment.get("shareability_score", 0),
                 "hook_type": segment.get("hook_type"),
                 "hook_title": segment.get("hook_title"),
+                "output_format": (
+                    output_format if output_format in VALID_OUTPUT_FORMATS else "vertical"
+                ),
                 "keep_ranges": keep_ranges,
             }
         except Exception as e:
@@ -912,6 +917,8 @@ class VideoService:
         should_cancel: Optional[Callable[[], Awaitable[bool]]] = None,
         performance_context: Optional[str] = None,
         clip_length: str = "auto",
+        clip_lengths: Optional[List[str]] = None,
+        cached_analyses: Optional[Dict[str, Optional[str]]] = None,
     ) -> Dict[str, Any]:
         """
         Complete video processing pipeline.
@@ -924,6 +931,14 @@ class VideoService:
         audio_first = False
         try:
             runtime_config = get_config()
+            lengths = normalize_clip_lengths(
+                clip_lengths if clip_lengths is not None else clip_length,
+                fallback=clip_length,
+            )
+            clip_length = lengths[0]
+            analyses_cache = dict(cached_analyses or {})
+            if clip_length not in analyses_cache and cached_analysis_json:
+                analyses_cache[clip_length] = cached_analysis_json
             duration_limit = (
                 runtime_config.max_video_duration
                 if max_video_duration is None
@@ -1073,7 +1088,7 @@ class VideoService:
                 logger.warning("Source word timings retained locally for upload retry")
             await run_in_thread(persist_cache_sidecar, video_path)
 
-            # Step 3: AI analysis
+            # Step 3: AI analysis — one pass per selected length preset.
             if should_cancel and await should_cancel():
                 raise Exception("Task cancelled")
 
@@ -1082,68 +1097,20 @@ class VideoService:
                     50, "Analyzing content with AI...", "processing"
                 )
 
-            relevant_parts = None
-            if cached_analysis_json:
-                try:
-                    cached_analysis = json.loads(cached_analysis_json)
-                    segments = cached_analysis.get("most_relevant_segments", [])
-                    if not segments:
-                        logger.info(
-                            "Ignoring cached transcript analysis with no clip segments"
-                        )
-                    else:
-
-                        class _SimpleResult:
-                            def __init__(self, payload: Dict[str, Any]):
-                                self.summary = payload.get("summary")
-                                self.key_topics = payload.get("key_topics")
-                                self.most_relevant_segments = payload.get(
-                                    "most_relevant_segments", []
-                                )
-
-                        relevant_parts = _SimpleResult(
-                            {
-                                "summary": cached_analysis.get("summary"),
-                                "key_topics": cached_analysis.get("key_topics", []),
-                                "most_relevant_segments": segments,
-                            }
-                        )
-                except Exception:
-                    relevant_parts = None
-
-            if relevant_parts is None:
-                try:
-                    clip_signals = await run_in_thread(
-                        build_clip_signal_summary,
-                        video_path,
-                        transcript,
+            class _SimpleResult:
+                def __init__(self, payload: Dict[str, Any]):
+                    self.summary = payload.get("summary")
+                    self.key_topics = payload.get("key_topics")
+                    self.most_relevant_segments = payload.get(
+                        "most_relevant_segments", []
                     )
-                except Exception as exc:
-                    logger.warning("Clip signal extraction failed: %s", exc)
-                    clip_signals = None
-                relevant_parts = await VideoService.analyze_transcript(
-                    transcript,
-                    clip_signals=clip_signals,
-                    performance_context=performance_context,
-                    clip_length=clip_length,
-                )
 
-            # Step 4: Create clips
-            if should_cancel and await should_cancel():
-                raise Exception("Task cancelled")
-
-            if progress_callback:
-                await progress_callback(70, "Creating video clips...", "processing")
-
-            raw_segments = relevant_parts.most_relevant_segments
-            segments_json: List[Dict[str, Any]] = []
-            transcript_data = load_cached_transcript_data(video_path)
-            for segment in raw_segments:
+            def _segment_payload(segment: Any) -> Dict[str, Any]:
                 if isinstance(segment, dict):
                     virality = segment.get("virality") or {}
                     if hasattr(virality, "model_dump"):
                         virality = virality.model_dump()
-                    segment_payload = {
+                    payload = {
                         "start_time": segment.get("start_time"),
                         "end_time": segment.get("end_time"),
                         "text": segment.get("text", ""),
@@ -1160,59 +1127,144 @@ class VideoService:
                         "hook_end_time": segment.get("hook_end_time"),
                     }
                     if segment.get("opening_reviewed"):
-                        segment_payload["opening_reviewed"] = True
-                else:
-                    virality = segment.virality.model_dump() if segment.virality else {}
-                    segment_payload = {
-                        "start_time": segment.start_time,
-                        "end_time": segment.end_time,
-                        "text": segment.text,
-                        "relevance_score": segment.relevance_score,
-                        "reasoning": segment.reasoning,
-                        "virality_score": virality.get("total_score", 0),
-                        "hook_score": virality.get("hook_score", 0),
-                        "engagement_score": virality.get("engagement_score", 0),
-                        "value_score": virality.get("value_score", 0),
-                        "shareability_score": virality.get("shareability_score", 0),
-                        "hook_type": virality.get("hook_type"),
-                        "hook_title": getattr(segment, "hook_title", None),
-                        "hook_start_time": getattr(segment, "hook_start_time", None),
-                        "hook_end_time": getattr(segment, "hook_end_time", None),
-                    }
+                        payload["opening_reviewed"] = True
+                    return payload
+                virality = segment.virality.model_dump() if segment.virality else {}
+                return {
+                    "start_time": segment.start_time,
+                    "end_time": segment.end_time,
+                    "text": segment.text,
+                    "relevance_score": segment.relevance_score,
+                    "reasoning": segment.reasoning,
+                    "virality_score": virality.get("total_score", 0),
+                    "hook_score": virality.get("hook_score", 0),
+                    "engagement_score": virality.get("engagement_score", 0),
+                    "value_score": virality.get("value_score", 0),
+                    "shareability_score": virality.get("shareability_score", 0),
+                    "hook_type": virality.get("hook_type"),
+                    "hook_title": getattr(segment, "hook_title", None),
+                    "hook_start_time": getattr(segment, "hook_start_time", None),
+                    "hook_end_time": getattr(segment, "hook_end_time", None),
+                }
 
-                segment_payload["text"] = VideoService._ground_segment_text(
-                    segment_payload,
-                    transcript_data,
-                )
-                segments_json.append(segment_payload)
-
-            try:
-                segments_json = VideoService._refine_segment_openings(
-                    segments_json, transcript_data, clip_length
-                )
-            except Exception:
-                # A heuristic must never fail the task; keep the AI's openings.
-                logger.exception("Opening review failed; keeping the selected openings")
-
+            clip_signals = None
+            clip_signals_loaded = False
+            transcript_data = load_cached_transcript_data(video_path)
             clip_limit = max_final_clips_for_duration(file_duration, runtime_config.max_clips)
             if processing_mode == "fast":
                 clip_limit = min(clip_limit, runtime_config.fast_mode_max_clips)
-            # Retain a bounded reserve until picture checks finish, so a rejected
-            # slate can be replaced by the next already-ranked candidate.
-            segments_json = segments_json[: min(24, max(1, clip_limit) * 2)]
 
-            if not segments_json:
-                logger.warning(
-                    "AI analysis selected no segments; using fallback clip window"
-                )
-                segments_json = [
-                    VideoService._build_fallback_segment(
+            segments_json: List[Dict[str, Any]] = []
+            analyses_by_length: Dict[str, str] = {}
+            relevant_parts = None
+
+            for length_index, length in enumerate(lengths):
+                if should_cancel and await should_cancel():
+                    raise Exception("Task cancelled")
+                if len(lengths) > 1 and progress_callback:
+                    await progress_callback(
+                        50 + int((length_index / max(1, len(lengths))) * 15),
+                        f"Analyzing {length} clips ({length_index + 1}/{len(lengths)})...",
+                        "processing",
+                    )
+
+                length_parts = None
+                cached_for_length = analyses_cache.get(length)
+                if cached_for_length:
+                    try:
+                        cached_analysis = json.loads(cached_for_length)
+                        segments = cached_analysis.get("most_relevant_segments", [])
+                        if not segments:
+                            logger.info(
+                                "Ignoring cached transcript analysis with no clip segments"
+                            )
+                        else:
+                            length_parts = _SimpleResult(
+                                {
+                                    "summary": cached_analysis.get("summary"),
+                                    "key_topics": cached_analysis.get("key_topics", []),
+                                    "most_relevant_segments": segments,
+                                }
+                            )
+                    except Exception:
+                        length_parts = None
+
+                if length_parts is None:
+                    if not clip_signals_loaded:
+                        try:
+                            clip_signals = await run_in_thread(
+                                build_clip_signal_summary,
+                                video_path,
+                                transcript,
+                            )
+                        except Exception as exc:
+                            logger.warning("Clip signal extraction failed: %s", exc)
+                            clip_signals = None
+                        clip_signals_loaded = True
+                    length_parts = await VideoService.analyze_transcript(
+                        transcript,
+                        clip_signals=clip_signals,
+                        performance_context=performance_context,
+                        clip_length=length,
+                    )
+
+                if relevant_parts is None:
+                    relevant_parts = length_parts
+
+                length_segments: List[Dict[str, Any]] = []
+                for segment in length_parts.most_relevant_segments:
+                    segment_payload = _segment_payload(segment)
+                    segment_payload["text"] = VideoService._ground_segment_text(
+                        segment_payload,
+                        transcript_data,
+                    )
+                    segment_payload["clip_length"] = length
+                    length_segments.append(segment_payload)
+
+                try:
+                    length_segments = VideoService._refine_segment_openings(
+                        length_segments, transcript_data, length
+                    )
+                except Exception:
+                    # A heuristic must never fail the task; keep the AI's openings.
+                    logger.exception(
+                        "Opening review failed for %s; keeping the selected openings",
+                        length,
+                    )
+
+                # Retain a bounded reserve until picture checks finish, so a rejected
+                # slate can be replaced by the next already-ranked candidate.
+                length_segments = length_segments[: min(24, max(1, clip_limit) * 2)]
+
+                if not length_segments:
+                    logger.warning(
+                        "AI analysis selected no %s segments; using fallback clip window",
+                        length,
+                    )
+                    fallback = VideoService._build_fallback_segment(
                         file_duration,
                         transcript,
-                        (runtime_config.clip_duration if clip_length == "auto"
-                         else clip_duration(clip_length).ideal_minimum),
+                        (runtime_config.clip_duration if length == "auto"
+                         else clip_duration(length).ideal_minimum),
                     )
-                ]
+                    fallback["clip_length"] = length
+                    length_segments = [fallback]
+
+                analyses_by_length[length] = json.dumps(
+                    {
+                        "summary": length_parts.summary if length_parts else None,
+                        "key_topics": length_parts.key_topics if length_parts else [],
+                        "most_relevant_segments": length_segments,
+                    }
+                )
+                segments_json.extend(length_segments)
+
+            # Step 4: Create clips
+            if should_cancel and await should_cancel():
+                raise Exception("Task cancelled")
+
+            if progress_callback:
+                await progress_callback(70, "Creating video clips...", "processing")
 
             if audio_first:
                 audio_path = video_path
@@ -1270,9 +1322,34 @@ class VideoService:
                 except Exception:
                     logger.exception("Visual suitability check failed; keeping every segment")
 
-            segments_json = segments_json[:max(1, clip_limit)]
+            # Apply the final count cap per selected length so multi-length
+            # requests keep clips from every preset.
+            capped: List[Dict[str, Any]] = []
+            per_length_counts: Dict[str, int] = {length: 0 for length in lengths}
+            for segment in segments_json:
+                length = normalize_clip_lengths(
+                    segment.get("clip_length", clip_length),
+                    fallback=clip_length,
+                )[0]
+                if per_length_counts.get(length, 0) >= max(1, clip_limit):
+                    continue
+                per_length_counts[length] = per_length_counts.get(length, 0) + 1
+                capped.append(segment)
+            segments_json = capped
             if not segments_json:
                 raise ValueError("No usable footage remains after excluding interruption notices.")
+
+            primary_analysis = analyses_by_length.get(clip_length) or json.dumps(
+                {
+                    "summary": relevant_parts.summary if relevant_parts else None,
+                    "key_topics": relevant_parts.key_topics if relevant_parts else [],
+                    "most_relevant_segments": [
+                        segment
+                        for segment in segments_json
+                        if segment.get("clip_length", clip_length) == clip_length
+                    ],
+                }
+            )
 
             return {
                 "segments": segments_json,
@@ -1282,15 +1359,8 @@ class VideoService:
                 "summary": relevant_parts.summary if relevant_parts else None,
                 "key_topics": relevant_parts.key_topics if relevant_parts else None,
                 "transcript": transcript,
-                "analysis_json": json.dumps(
-                    {
-                        "summary": relevant_parts.summary if relevant_parts else None,
-                        "key_topics": relevant_parts.key_topics
-                        if relevant_parts
-                        else [],
-                        "most_relevant_segments": segments_json,
-                    }
-                ),
+                "analysis_json": primary_analysis,
+                "analyses_by_length": analyses_by_length,
             }
 
         except (Exception, asyncio.CancelledError) as e:

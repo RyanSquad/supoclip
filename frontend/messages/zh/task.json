@@ -98,6 +98,13 @@
   "deleteClipTitle": "删除片段",
   "deleteClipBody": "确定要删除这个片段吗？此操作无法撤销。",
   "clipNumber": "片段 {order}",
+  "framing": {
+    "vertical": "Auto 9:16",
+    "vertical_fit": "Full frame",
+    "vertical_pan": "Speaker pan",
+    "vertical_split": "Split-screen",
+    "original": "Original"
+  },
   "topPick": "首选",
   "preview": "预览 {title}",
   "downloadNamed": "下载 {title}",

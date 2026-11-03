@@ -98,6 +98,13 @@
   "deleteClipTitle": "Delete Clip",
   "deleteClipBody": "Are you sure you want to delete this clip? This action cannot be undone.",
   "clipNumber": "Clip {order}",
+  "framing": {
+    "vertical": "Auto 9:16",
+    "vertical_fit": "Full frame",
+    "vertical_pan": "Speaker pan",
+    "vertical_split": "Split-screen",
+    "original": "Original"
+  },
   "topPick": "Top pick",
   "preview": "Preview {title}",
   "downloadNamed": "Download {title}",

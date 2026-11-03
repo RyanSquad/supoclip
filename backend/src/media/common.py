@@ -64,6 +64,30 @@ TRANSCRIPT_CACHE_SCHEMA_VERSION = 2
 
 VALID_OUTPUT_FORMATS = {"vertical", "vertical_fit", "vertical_pan", "vertical_split", "original"}
 
+
+def normalize_output_formats(
+    value: Any = None,
+    *,
+    fallback: str = "vertical",
+) -> List[str]:
+    """Return a de-duplicated list of valid framing formats (never empty)."""
+    default = fallback if fallback in VALID_OUTPUT_FORMATS else "vertical"
+    if isinstance(value, str):
+        candidates = [value]
+    elif isinstance(value, (list, tuple)):
+        candidates = list(value)
+    else:
+        candidates = []
+
+    formats: List[str] = []
+    for item in candidates:
+        if not isinstance(item, str):
+            continue
+        name = item.strip()
+        if name in VALID_OUTPUT_FORMATS and name not in formats:
+            formats.append(name)
+    return formats or [default]
+
 EMOJI_FONT_NAME = "Noto Color Emoji"
 
 CLIP_END_SENTENCE_EXTENSION_SECONDS = 5.5

@@ -52,7 +52,7 @@ class User(Base):
     password_hash: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     default_clip_length: Mapped[str] = mapped_column(
-        String(10), nullable=False, server_default=sql_text("'auto'")
+        String(64), nullable=False, server_default=sql_text("'auto'")
     )
 
     # Billing fields

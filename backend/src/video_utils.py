@@ -9,6 +9,7 @@ from .media.common import (
     Path,
     Tuple,
     VALID_OUTPUT_FORMATS,
+    normalize_output_formats,
     find_font_path,
     get_template,
     logger,
@@ -568,6 +569,9 @@ def create_clips_from_segments(
                 # spoken; keep the stored text word-for-word with the timeline.
                 clip_text = keep_ranges_transcript_text(video_path, keep_ranges) or clip_text
 
+            segment_format = segment.get("output_format") or output_format
+            if segment_format not in VALID_OUTPUT_FORMATS:
+                segment_format = output_format if output_format in VALID_OUTPUT_FORMATS else "vertical"
             layout_report: Dict[str, Any] = {}
             success = create_optimized_clip(
                 video_path,
@@ -579,7 +583,7 @@ def create_clips_from_segments(
                 font_size,
                 font_color,
                 caption_template,
-                output_format,
+                segment_format,
                 keep_ranges,
                 hook_title=segment.get("hook_title"),
                 extend_to_sentence=False,
@@ -619,6 +623,7 @@ def create_clips_from_segments(
                     "shareability_score": segment.get("shareability_score", 0),
                     "hook_type": segment.get("hook_type"),
                     "hook_title": segment.get("hook_title"),
+                    "output_format": segment_format,
                     "keep_ranges": keep_ranges,
                 }
                 clips_info.append(clip_info)

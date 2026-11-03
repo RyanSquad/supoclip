@@ -98,6 +98,13 @@
   "deleteClipTitle": "Eliminar clip",
   "deleteClipBody": "¿Seguro que quieres eliminar este clip? Esta acción no se puede deshacer.",
   "clipNumber": "Clip {order}",
+  "framing": {
+    "vertical": "Auto 9:16",
+    "vertical_fit": "Full frame",
+    "vertical_pan": "Speaker pan",
+    "vertical_split": "Split-screen",
+    "original": "Original"
+  },
   "topPick": "Mejor elección",
   "preview": "Previsualizar {title}",
   "downloadNamed": "Descargar {title}",

@@ -323,9 +323,10 @@ def get_video_transcript(
 ) -> str:
     """Get a video transcript using the configured provider.
 
-    Dispatches to AssemblyAI, local Whisper, or YouTube captions based on
-    ``TRANSCRIPTION_PROVIDER``. ``source_url`` enables the youtube_captions
-    provider, which needs the original URL rather than a local file path.
+    Dispatches to ElevenLabs, AssemblyAI, local Whisper, or YouTube captions
+    based on ``TRANSCRIPTION_PROVIDER``. ``source_url`` enables the
+    youtube_captions provider, which needs the original URL rather than a
+    local file path. ElevenLabs falls back to Whisper on failure.
     """
     logger.info(f"Getting transcript for: {video_path}")
     runtime_config = get_config()
@@ -333,6 +334,8 @@ def get_video_transcript(
 
     if provider == "whisper":
         return _get_transcript_with_whisper(video_path, runtime_config)
+    if provider == "elevenlabs":
+        return _get_transcript_with_elevenlabs(video_path, runtime_config)
     if provider == "youtube_captions":
         if not source_url:
             raise ValueError(
@@ -341,6 +344,238 @@ def get_video_transcript(
             )
         return _get_transcript_with_youtube_captions(source_url)
     return _get_transcript_with_assemblyai(video_path, speech_model, runtime_config)
+
+
+def transcribe_with_elevenlabs(
+    video_path: Path,
+    api_key: str,
+    *,
+    model_id: str = "scribe_v2",
+    language: Optional[str] = None,
+    timeout_seconds: int = 900,
+) -> Dict[str, Any]:
+    """Transcribe via ElevenLabs Scribe with word-level timestamps.
+
+    Returns the raw JSON payload from ``POST /v1/speech-to-text``.
+    """
+    if not api_key:
+        raise RuntimeError("ELEVENLABS_API_KEY is not set")
+
+    audio_path = _prepare_audio_for_transcription(video_path)
+    language_code = language.split("_", 1)[0] if language else None
+    logger.info(
+        "Starting ElevenLabs transcription with model: %s (language: %s)",
+        model_id,
+        language_code or "auto",
+    )
+
+    data = {
+        "model_id": model_id,
+        "timestamps_granularity": "word",
+        "diarize": "true",
+        "tag_audio_events": "false",
+    }
+    if language_code:
+        data["language_code"] = language_code
+
+    with open(audio_path, "rb") as audio_file:
+        files = {
+            "file": (audio_path.name, audio_file, "audio/mpeg"),
+        }
+        with httpx.Client(timeout=timeout_seconds) as client:
+            response = client.post(
+                "https://api.elevenlabs.io/v1/speech-to-text",
+                headers={"xi-api-key": api_key},
+                data=data,
+                files=files,
+            )
+            response.raise_for_status()
+            payload = response.json()
+
+    if not isinstance(payload, dict) or not payload.get("text"):
+        raise RuntimeError("ElevenLabs transcription returned an empty transcript")
+    return payload
+
+
+def _elevenlabs_result_to_transcript_data(result: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert an ElevenLabs STT response into the shared transcript-cache format.
+
+    ElevenLabs reports word timings in seconds; the cache stores milliseconds.
+    Spacing and audio-event tokens are dropped so subtitle timing stays on speech.
+    """
+    words_data: List[Dict[str, Any]] = []
+    for item in result.get("words") or []:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") not in (None, "word"):
+            continue
+        text = str(item.get("text") or "").strip()
+        if not text:
+            continue
+        start = item.get("start")
+        end = item.get("end")
+        if start is None or end is None:
+            continue
+        speaker = item.get("speaker_id")
+        words_data.append(
+            {
+                "text": text,
+                "start": int(float(start) * 1000),
+                "end": int(float(end) * 1000),
+                "confidence": 1.0,
+                "speaker": speaker if isinstance(speaker, str) else None,
+            }
+        )
+
+    utterances_data: List[Dict[str, Any]] = []
+    current: List[Dict[str, Any]] = []
+    current_speaker: Optional[str] = None
+
+    def flush() -> None:
+        nonlocal current, current_speaker
+        if not current:
+            return
+        utterances_data.append(
+            {
+                "text": _join_transcript_tokens([word["text"] for word in current]),
+                "start": current[0]["start"],
+                "end": current[-1]["end"],
+                "speaker": current_speaker,
+                "words": list(current),
+            }
+        )
+        current = []
+        current_speaker = None
+
+    for word in words_data:
+        speaker = word.get("speaker")
+        if current and speaker != current_speaker:
+            flush()
+        if not current:
+            current_speaker = speaker if isinstance(speaker, str) else None
+        current.append(word)
+    flush()
+
+    language_code = result.get("language_code")
+    if isinstance(language_code, str) and len(language_code) == 3:
+        # ElevenLabs often returns ISO-639-3 (e.g. eng); keep the base form.
+        language_code = language_code[:2]
+
+    return {
+        "version": TRANSCRIPT_CACHE_SCHEMA_VERSION,
+        "words": words_data,
+        "utterances": utterances_data,
+        "text": result.get("text", ""),
+        "language_code": language_code if isinstance(language_code, str) else None,
+    }
+
+
+def _word_objects_from_payloads(words: List[Dict[str, Any]]) -> List[Any]:
+    """Build lightweight word objects for analysis formatting helpers."""
+
+    class _Word:
+        __slots__ = ("text", "start", "end")
+
+        def __init__(self, payload: Dict[str, Any]):
+            self.text = str(payload.get("text") or "")
+            self.start = int(payload.get("start", 0))
+            self.end = int(payload.get("end", 0))
+
+    return [_Word(word) for word in words]
+
+
+def _format_cache_transcript_for_analysis(cache_data: Dict[str, Any]) -> List[str]:
+    """Format a normalized transcript-cache dict for LLM analysis.
+
+    Speaker turns from ElevenLabs (and similar providers) can span an entire
+    monologue. Clip selection snaps AI timestamps to these analysis lines, so a
+    single long utterance would reject every mid-video candidate. Mirror the
+    AssemblyAI path: split long turns on sentence/duration boundaries.
+    """
+    utterances = cache_data.get("utterances") or []
+    if utterances:
+        formatted_lines: List[str] = []
+        for utterance in utterances:
+            speaker = utterance.get("speaker")
+            speaker_label = speaker if isinstance(speaker, str) else None
+            utt_words = _word_objects_from_payloads(list(utterance.get("words") or []))
+            utterance_duration = max(
+                0, int(utterance.get("end", 0)) - int(utterance.get("start", 0))
+            )
+            if utt_words and (
+                utterance_duration > ANALYSIS_UTTERANCE_SPLIT_THRESHOLD_MS
+                or len(utt_words) > ANALYSIS_UTTERANCE_SPLIT_THRESHOLD_WORDS
+            ):
+                formatted_lines.extend(
+                    _format_words_for_analysis(
+                        utt_words,
+                        speaker_label,
+                        max_words_per_segment=ANALYSIS_LONG_UTTERANCE_MAX_WORDS,
+                        max_duration_ms=ANALYSIS_LONG_UTTERANCE_MAX_DURATION_MS,
+                    )
+                )
+                continue
+
+            if utt_words:
+                formatted_lines.extend(
+                    _format_words_for_analysis(utt_words, speaker_label)
+                )
+                continue
+
+            text = str(utterance.get("text") or "").strip()
+            if text:
+                start_time = format_ms_to_timestamp(int(utterance.get("start", 0)))
+                end_time = format_ms_to_timestamp(int(utterance.get("end", 0)))
+                speaker_prefix = f"Speaker {speaker_label}: " if speaker_label else ""
+                formatted_lines.append(
+                    f"[{start_time} - {end_time}] {speaker_prefix}{text}"
+                )
+        return formatted_lines
+
+    words = cache_data.get("words") or []
+    if not words:
+        text = str(cache_data.get("text") or "").strip()
+        return [text] if text else []
+
+    return _format_words_for_analysis(_word_objects_from_payloads(words))
+
+
+def _write_transcript_cache(video_path: Path, cache_data: Dict[str, Any]) -> None:
+    cache_path = video_path.with_suffix(".transcript_cache.json")
+    with open(cache_path, "w") as f:
+        json.dump(cache_data, f)
+    logger.info("Cached %d words to %s", len(cache_data.get("words") or []), cache_path)
+
+
+def _get_transcript_with_elevenlabs(video_path: Path, runtime_config) -> str:
+    """Transcribe with ElevenLabs; fall back to local Whisper on failure."""
+    try:
+        result = transcribe_with_elevenlabs(
+            video_path,
+            runtime_config.elevenlabs_api_key or "",
+            model_id=runtime_config.elevenlabs_stt_model,
+            language=runtime_config.transcription_language or None,
+            timeout_seconds=runtime_config.elevenlabs_stt_timeout_seconds,
+        )
+        cache_data = _elevenlabs_result_to_transcript_data(result)
+        if not cache_data.get("words") and not cache_data.get("text"):
+            raise RuntimeError("ElevenLabs transcription produced no words")
+
+        formatted_lines = _format_cache_transcript_for_analysis(cache_data)
+        _write_transcript_cache(video_path, cache_data)
+        joined = "\n".join(formatted_lines)
+        logger.info(
+            "ElevenLabs transcript formatted: %d segments, %d chars",
+            len(formatted_lines),
+            len(joined),
+        )
+        return joined
+    except Exception as error:
+        logger.warning(
+            "ElevenLabs transcription failed (%s); falling back to Whisper",
+            error,
+        )
+        return _get_transcript_with_whisper(video_path, runtime_config)
 
 
 def _get_transcript_with_assemblyai(

@@ -136,6 +136,7 @@ export default function SharedGenerationPage() {
     }));
   const bestScore = clips.reduce((best, clip) => Math.max(best, clip.virality_score || 0), 0);
   const totalSeconds = clips.reduce((sum, clip) => sum + (clip.duration || 0), 0);
+  const showFraming = new Set(clips.map((clip) => clip.output_format).filter(Boolean)).size > 1;
   const focused = focusIndex !== null ? clips[focusIndex] : null;
 
   return (
@@ -159,6 +160,7 @@ export default function SharedGenerationPage() {
               taskId=""
               busy={false}
               best={bestScore > 0 && clip.virality_score === bestScore}
+              showFraming={showFraming}
               editable={false}
               onOpen={() => setFocusIndex(index)}
               onDownload={() => download(task.clips.find((item) => item.id === clip.id)!)}

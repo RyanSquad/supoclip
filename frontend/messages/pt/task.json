@@ -98,6 +98,13 @@
   "deleteClipTitle": "Excluir clipe",
   "deleteClipBody": "Tem certeza de que quer excluir este clipe? Essa ação não pode ser desfeita.",
   "clipNumber": "Clipe {order}",
+  "framing": {
+    "vertical": "Auto 9:16",
+    "vertical_fit": "Full frame",
+    "vertical_pan": "Speaker pan",
+    "vertical_split": "Split-screen",
+    "original": "Original"
+  },
   "topPick": "Melhor escolha",
   "preview": "Pré-visualizar {title}",
   "downloadNamed": "Baixar {title}",

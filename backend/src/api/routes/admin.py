@@ -27,6 +27,11 @@ SETTING_METADATA = {
         "description": "Used for video transcription.",
         "input_type": "password",
     },
+    "ELEVENLABS_API_KEY": {
+        "label": "ElevenLabs API key",
+        "description": "Used when TRANSCRIPTION_PROVIDER=elevenlabs (Whisper is the fallback).",
+        "input_type": "password",
+    },
     "LLM": {
         "label": "LLM model",
         "description": "Provider and model, for example openai:gpt-5.2.",

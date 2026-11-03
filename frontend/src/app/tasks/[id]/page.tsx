@@ -97,6 +97,7 @@ interface Clip {
   shareability_score: number;
   hook_type: string | null;
   hook_title: string | null;
+  output_format?: string | null;
 }
 
 interface TaskDetails {
@@ -681,6 +682,7 @@ export default function TaskPage() {
   const focusedClip = focusIndex !== null ? sortedClips[focusIndex] : null;
   const bestScore = clips.reduce((best, clip) => Math.max(best, clip.virality_score || 0), 0);
   const totalSeconds = clips.reduce((sum, clip) => sum + (clip.duration || 0), 0);
+  const showFraming = new Set(clips.map((clip) => clip.output_format).filter(Boolean)).size > 1;
 
   const renderTile = (clip: Clip, index: number) => (
     <ClipTile
@@ -689,6 +691,7 @@ export default function TaskPage() {
       taskId={task?.id ?? String(params.id)}
       busy={pendingAction === clip.id}
       best={bestScore > 0 && clip.virality_score === bestScore}
+      showFraming={showFraming}
       onOpen={() => setFocusIndex(index)}
       onDownload={() => handleDownloadClip(clip)}
       onDelete={readOnly ? undefined : () => setDeletingClipId(clip.id)}

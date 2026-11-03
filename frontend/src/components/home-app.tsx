@@ -33,7 +33,7 @@ import { track } from "@/lib/datafast";
 import { formatSupportMessage, parseApiError } from "@/lib/api-error";
 import { buildFontOptionsPayload, FONT_TEMPLATE_DEFAULT_VALUE, savedCaptionDefaults } from "@/lib/font-options";
 import { fetchGenerations, type GenerationSummary } from "@/lib/generations";
-import { CLIP_LENGTHS, isClipLength, type ClipLength } from "@/lib/clip-duration";
+import { CLIP_LENGTHS, normalizeClipLengths, parseClipLengths, type ClipLength } from "@/lib/clip-duration";
 import { cn } from "@/lib/utils";
 import { FontSelectOption, type FontOption } from "@/components/font-select-option";
 
@@ -92,8 +92,8 @@ export default function HomeApp() {
 
   const [captionTemplate, setCaptionTemplate] = useState("default");
   const [availableTemplates, setAvailableTemplates] = useState<CaptionTemplate[]>([]);
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>("vertical");
-  const [clipLength, setClipLength] = useState<ClipLength>("auto");
+  const [outputFormats, setOutputFormats] = useState<OutputFormat[]>(["vertical"]);
+  const [clipLengths, setClipLengths] = useState<ClipLength[]>(["auto"]);
   const [clipLengthSaveError, setClipLengthSaveError] = useState(false);
   const [isClipLengthLoading, setIsClipLengthLoading] = useState(false);
   const clipLengthEdited = useRef(false);
@@ -124,15 +124,18 @@ export default function HomeApp() {
   useEffect(() => {
     let cancelled = false;
     clipLengthEdited.current = false;
-    setClipLength("auto");
+    setClipLengths(["auto"]);
     if (session?.user?.id) {
       setIsClipLengthLoading(true);
       void fetch("/api/preferences")
         .then((response) => response.ok ? response.json() : null)
         .then((preferences) => {
           if (cancelled) return;
-          if (!clipLengthEdited.current && isClipLength(preferences?.clipLength)) {
-            setClipLength(preferences.clipLength);
+          if (!clipLengthEdited.current) {
+            const saved = preferences?.clipLengths ?? preferences?.clipLength;
+            if (saved !== undefined && saved !== null) {
+              setClipLengths(parseClipLengths(saved));
+            }
           }
           // Caption defaults from Settings; anything picked here meanwhile wins.
           const captionDefaults = savedCaptionDefaults(preferences);
@@ -148,23 +151,34 @@ export default function HomeApp() {
     return () => { cancelled = true; };
   }, [session?.user?.id]);
 
-  function chooseClipLength(value: ClipLength) {
+  function toggleClipLength(value: ClipLength) {
     clipLengthEdited.current = true;
-    setClipLength(value);
     setIsClipLengthLoading(false);
     setClipLengthSaveError(false);
-    // Serialize changes so a slow previous save cannot overwrite the latest choice.
-    clipLengthSave.current = clipLengthSave.current.then(async () => {
-      try {
-        const response = await fetch("/api/preferences", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clipLength: value }),
-        });
-        setClipLengthSaveError(!response.ok);
-      } catch {
-        setClipLengthSaveError(true);
+    setClipLengths((current) => {
+      let next: ClipLength[];
+      if (value === "auto") {
+        next = ["auto"];
+      } else if (current.includes(value)) {
+        const without = current.filter((item) => item !== value && item !== "auto");
+        next = without.length > 0 ? without : current;
+      } else {
+        next = normalizeClipLengths([...current.filter((item) => item !== "auto"), value]);
       }
+      // Serialize changes so a slow previous save cannot overwrite the latest choice.
+      clipLengthSave.current = clipLengthSave.current.then(async () => {
+        try {
+          const response = await fetch("/api/preferences", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clipLengths: next, clipLength: next[0] }),
+          });
+          setClipLengthSaveError(!response.ok);
+        } catch {
+          setClipLengthSaveError(true);
+        }
+      });
+      return next;
     });
   }
 
@@ -327,8 +341,10 @@ export default function HomeApp() {
           font_options: fontOptions,
           caption_template: captionTemplate,
           processing_mode: "fast",
-          output_format: outputFormat,
-          clip_length: clipLength,
+          output_format: outputFormats[0],
+          output_formats: outputFormats,
+          clip_length: clipLengths[0],
+          clip_lengths: clipLengths,
           add_subtitles: addSubtitles,
           include_broll: brollAvailable && includeBroll,
           cut_long_pauses: cutLongPauses,
@@ -354,7 +370,8 @@ export default function HomeApp() {
       track("task_created", {
         source_type: sourceType,
         caption_template: captionTemplate,
-        output_format: outputFormat,
+        output_format: outputFormats[0],
+        output_formats: outputFormats,
         add_subtitles: addSubtitles,
         include_broll: brollAvailable && includeBroll,
         cut_long_pauses: cutLongPauses,
@@ -495,19 +512,34 @@ export default function HomeApp() {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Chip disabled={controlsDisabled} active={clipLength !== "auto"} aria-label={t("clipLength.picker")}>
-                    <Timer className="size-3.5" />{t(`clipLength.${clipLength}`)}<ChevronDown className="size-3 opacity-60" />
+                  <Chip disabled={controlsDisabled} active={clipLengths.length > 1 || clipLengths[0] !== "auto"} aria-label={t("clipLength.picker")}>
+                    <Timer className="size-3.5" />
+                    {clipLengths.length === 1
+                      ? t(`clipLength.${clipLengths[0]}`)
+                      : t("clipLength.count", { count: clipLengths.length })}
+                    <ChevronDown className="size-3 opacity-60" />
                   </Chip>
                 </PopoverTrigger>
                 <PopoverContent align="start" className="w-72 rounded-2xl p-3">
                   <p className="mb-2 text-sm font-medium">{t("clipLength.title")}</p>
-                  <div role="radiogroup" aria-label={t("clipLength.title")} className="grid gap-1">
-                    {CLIP_LENGTHS.map((length) => (
-                      <button type="button" role="radio" aria-checked={clipLength === length} disabled={controlsDisabled} key={length} onClick={() => chooseClipLength(length)} className={cn("flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-muted disabled:opacity-50", clipLength === length && "bg-muted")}>
-                        <span>{t(`clipLength.${length}`)}</span>
-                        {clipLength === length && <Check className="size-4" />}
-                      </button>
-                    ))}
+                  <div role="group" aria-label={t("clipLength.title")} className="grid gap-1">
+                    {CLIP_LENGTHS.map((length) => {
+                      const selected = clipLengths.includes(length);
+                      return (
+                        <button
+                          type="button"
+                          role="checkbox"
+                          aria-checked={selected}
+                          disabled={controlsDisabled}
+                          key={length}
+                          onClick={() => toggleClipLength(length)}
+                          className={cn("flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-muted disabled:opacity-50", selected && "bg-muted")}
+                        >
+                          <span>{t(`clipLength.${length}`)}</span>
+                          {selected && <Check className="size-4" />}
+                        </button>
+                      );
+                    })}
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground">{t("clipLength.hint")}</p>
                   {clipLengthSaveError && <p role="status" className="mt-2 text-xs text-destructive">{t("clipLength.saveError")}</p>}
@@ -623,26 +655,44 @@ export default function HomeApp() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Chip disabled={controlsDisabled}>
-                    <Crop className="size-3.5" />{t(`framingOptions.${outputFormat}.label`)}<ChevronDown className="size-3 opacity-60" />
+                    <Crop className="size-3.5" />
+                    {outputFormats.length === 1
+                      ? t(`framingOptions.${outputFormats[0]}.label`)
+                      : t("framingCount", { count: outputFormats.length })}
+                    <ChevronDown className="size-3 opacity-60" />
                   </Chip>
                 </PopoverTrigger>
                 <PopoverContent align="start" className="w-[min(92vw,420px)] rounded-2xl p-3">
-                  <p className="mb-2 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("framing")}</p>
-                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t("framing")}>
-                    {FRAMING_IDS.map((id) => (
-                      <button
-                        key={id}
-                        type="button"
-                        role="radio"
-                        aria-checked={outputFormat === id}
-                        onClick={() => setOutputFormat(id)}
-                        className={cn("rounded-xl border p-3 text-left transition-colors hover:bg-accent", outputFormat === id && "border-foreground ring-1 ring-foreground")}
-                      >
-                        <FramingGlyph kind={id} />
-                        <span className="mt-2 block text-sm font-medium">{t(`framingOptions.${id}.label`)}</span>
-                        <span className="block text-xs text-muted-foreground">{t(`framingOptions.${id}.hint`)}</span>
-                      </button>
-                    ))}
+                  <p className="mb-1 px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">{t("framing")}</p>
+                  <p className="mb-2 px-1 text-xs text-muted-foreground">{t("framingMultiHint")}</p>
+                  <div className="grid grid-cols-2 gap-2" role="group" aria-label={t("framing")}>
+                    {FRAMING_IDS.map((id) => {
+                      const selected = outputFormats.includes(id);
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          role="checkbox"
+                          aria-checked={selected}
+                          onClick={() => setOutputFormats((current) => {
+                            if (current.includes(id)) {
+                              return current.length === 1 ? current : current.filter((item) => item !== id);
+                            }
+                            return [...current, id];
+                          })}
+                          className={cn("relative rounded-xl border p-3 text-left transition-colors hover:bg-accent", selected && "border-foreground ring-1 ring-foreground")}
+                        >
+                          {selected && (
+                            <span className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-foreground text-background">
+                              <Check className="size-3" />
+                            </span>
+                          )}
+                          <FramingGlyph kind={id} />
+                          <span className="mt-2 block text-sm font-medium">{t(`framingOptions.${id}.label`)}</span>
+                          <span className="block text-xs text-muted-foreground">{t(`framingOptions.${id}.hint`)}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </PopoverContent>
               </Popover>

@@ -365,6 +365,7 @@ async def supoclip_create_clip_task(
     cut_long_pauses: bool = True,
     remove_filler_words: bool = True,
     clip_length: str = "auto",
+    clip_lengths: list[str] | None = None,
 ) -> str:
     """Create a SupoClip task that downloads a video and generates viral short clips.
 
@@ -386,7 +387,8 @@ async def supoclip_create_clip_task(
         font_family / font_size / font_color: Optional subtitle styling overrides.
         cut_long_pauses: Shorten long silences to a natural breath (default on).
         remove_filler_words: Cut disfluencies like "um" and "uh" (default on).
-        clip_length: auto (15-60s), short (15-30s), medium (30-60s), or long (60-120s).
+        clip_length: auto (15-60s), short (15-30s), medium (30-60s), long (60-120s), or extra_long (120-300s).
+        clip_lengths: Optional list of length presets; when set, clips are generated for each.
 
     Returns:
         str: JSON ``{"task_id": str, "job_id": str, "message": str}`` on success.
@@ -395,8 +397,28 @@ async def supoclip_create_clip_task(
     if len(cleaned_url) < 4:
         raise SupoClipError("url is required. Pass a YouTube URL or direct video URL.")
 
-    if clip_length not in {"auto", "short", "medium", "long"}:
-        raise SupoClipError("clip_length must be auto, short, medium, or long")
+    valid_lengths = {"auto", "short", "medium", "long", "extra_long"}
+    if clip_lengths is not None:
+        if not isinstance(clip_lengths, list) or not clip_lengths:
+            raise SupoClipError(
+                "clip_lengths must be a non-empty list of auto, short, medium, long, or extra_long"
+            )
+        normalized_lengths: list[str] = []
+        for item in clip_lengths:
+            if item not in valid_lengths:
+                raise SupoClipError(
+                    "clip_lengths must be auto, short, medium, long, or extra_long"
+                )
+            if item not in normalized_lengths:
+                normalized_lengths.append(item)
+        clip_lengths = normalized_lengths
+        clip_length = clip_lengths[0]
+    elif clip_length not in valid_lengths:
+        raise SupoClipError(
+            "clip_length must be auto, short, medium, long, or extra_long"
+        )
+    else:
+        clip_lengths = [clip_length]
 
     normalized_mode = processing_mode if processing_mode in {"fast", "balanced", "quality"} else "fast"
     normalized_format = output_format if output_format in VALID_OUTPUT_FORMATS else "vertical"
@@ -410,6 +432,7 @@ async def supoclip_create_clip_task(
         "source": source,
         "processing_mode": normalized_mode,
         "clip_length": clip_length,
+        "clip_lengths": clip_lengths,
         "output_format": normalized_format,
         "add_subtitles": add_subtitles,
         "caption_template": (caption_template or "default").strip()[:50] or "default",

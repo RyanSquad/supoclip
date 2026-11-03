@@ -98,6 +98,13 @@
   "deleteClipTitle": "Hapus clip",
   "deleteClipBody": "Yakin ingin menghapus clip ini? Tindakan ini tidak bisa dibatalkan.",
   "clipNumber": "Clip {order}",
+  "framing": {
+    "vertical": "Auto 9:16",
+    "vertical_fit": "Full frame",
+    "vertical_pan": "Speaker pan",
+    "vertical_split": "Split-screen",
+    "original": "Original"
+  },
   "topPick": "Pilihan utama",
   "preview": "Pratinjau {title}",
   "downloadNamed": "Unduh {title}",

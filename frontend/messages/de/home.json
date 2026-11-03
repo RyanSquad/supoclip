@@ -49,6 +49,8 @@
   "customCaptionColor": "Eigene Untertitelfarbe",
   "livePreview": "Live-Vorschau",
   "framing": "Bildausschnitt",
+  "framingMultiHint": "Eins oder mehrere wählen — Clips werden in jedem Format erstellt",
+  "framingCount": "{count} Formate",
   "framingOptions": {
     "vertical": {
       "label": "Auto 9:16",
@@ -124,7 +126,9 @@
     "short": "Kurz (15–30 s)",
     "medium": "Mittel (30–60 s)",
     "long": "Lang (1–2 Min.)",
-    "hint": "Ziellänge vor dem Entfernen von Pausen und Füllwörtern. Deine Auswahl wird als Standard gespeichert.",
+    "extra_long": "Extra lang (2–5 Min.)",
+    "count": "{count} Längen",
+    "hint": "Eins oder mehrere wählen — Clips werden in jeder Länge vor dem Entfernen von Pausen und Füllwörtern erstellt. Deine Auswahl wird als Standard gespeichert.",
     "saveError": "Standard konnte nicht gespeichert werden. Dieses Video verwendet trotzdem deine Auswahl."
   }
 }

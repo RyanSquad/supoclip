@@ -49,6 +49,8 @@
   "customCaptionColor": "Cor de legenda personalizada",
   "livePreview": "Prévia ao vivo",
   "framing": "Enquadramento",
+  "framingMultiHint": "Selecione um ou mais — clips são gerados em cada formato",
+  "framingCount": "{count} formatos",
   "framingOptions": {
     "vertical": {
       "label": "Auto 9:16",
@@ -124,7 +126,9 @@
     "short": "Curto (15–30 s)",
     "medium": "Médio (30–60 s)",
     "long": "Longo (1–2 min)",
-    "hint": "Duração desejada antes de remover pausas e vícios de linguagem. Sua escolha é salva como padrão.",
+    "extra_long": "Extra longo (2–5 min)",
+    "count": "{count} durações",
+    "hint": "Selecione uma ou mais — clips são gerados em cada duração antes de remover pausas e vícios de linguagem. Suas escolhas são salvas como padrão.",
     "saveError": "Não foi possível salvar o padrão. Este vídeo usará sua escolha."
   }
 }

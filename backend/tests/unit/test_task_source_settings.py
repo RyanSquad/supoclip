@@ -34,7 +34,10 @@ async def test_load_task_source_settings_falls_back_when_redis_fails(monkeypatch
     settings = await service._load_task_source_settings("task-123")
 
     assert settings["output_format"] == "vertical"
+    assert settings["output_formats"] == ["vertical"]
     assert settings["add_subtitles"] is True
+    assert settings["clip_length"] == "auto"
+    assert settings["clip_lengths"] == ["auto"]
     assert settings["cut_long_pauses"] is False
     assert settings["pause_threshold_ms"] == 1200
     assert settings["remove_filler_words"] is False
@@ -60,6 +63,7 @@ def test_merge_task_source_metadata_backfills_required_fields():
         "url": "upload://demo.mp4",
         "source_type": "video_url",
         "output_format": "vertical",
+        "output_formats": ["vertical"],
         "add_subtitles": True,
         "cut_long_pauses": True,
         "pause_threshold_ms": 900,
@@ -103,6 +107,42 @@ def test_merge_task_source_metadata_accepts_smart_vertical_modes(output_format):
     )
 
     assert merged["output_format"] == output_format
+    assert merged["output_formats"] == [output_format]
+
+
+def test_merge_task_source_metadata_accepts_multiple_formats():
+    merged = _merge_task_source_metadata(
+        {},
+        source_url="upload://demo.mp4",
+        source_type="video_url",
+        output_formats=["vertical", "vertical_fit", "original", "vertical"],
+        add_subtitles=True,
+    )
+
+    assert merged["output_format"] == "vertical"
+    assert merged["output_formats"] == ["vertical", "vertical_fit", "original"]
+
+
+@pytest.mark.asyncio
+async def test_load_task_source_settings_accepts_multiple_clip_lengths(monkeypatch):
+    import json
+
+    payload = json.dumps({
+        "clip_lengths": ["short", "extra_long"],
+        "output_formats": ["vertical", "original"],
+        "add_subtitles": True,
+    })
+    monkeypatch.setattr(
+        "src.services.clip_service.redis.Redis",
+        lambda **_kwargs: _RedisClient(payload),
+    )
+
+    service = TaskService(db=None)
+    settings = await service._load_task_source_settings("task-123")
+
+    assert settings["clip_length"] == "short"
+    assert settings["clip_lengths"] == ["short", "extra_long"]
+    assert settings["output_formats"] == ["vertical", "original"]
 
 
 @pytest.mark.asyncio

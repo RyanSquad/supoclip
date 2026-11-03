@@ -41,6 +41,14 @@ class Config:
         self.assembly_ai_request_timeout_seconds = max(5, min(300, int(
             os.getenv("ASSEMBLY_AI_REQUEST_TIMEOUT_SECONDS", "60")
         )))
+        self.elevenlabs_api_key = self._get_runtime_setting("ELEVENLABS_API_KEY")
+        self.elevenlabs_stt_model = (
+            self._get_optional_env("ELEVENLABS_STT_MODEL") or "scribe_v2"
+        )
+        self.elevenlabs_stt_timeout_seconds = max(
+            30,
+            min(3600, int(os.getenv("ELEVENLABS_STT_TIMEOUT_SECONDS", "900"))),
+        )
         self.pexels_api_key = self._get_runtime_setting("PEXELS_API_KEY")
         self.apify_api_token = self._get_runtime_setting("APIFY_API_TOKEN")
         self.rapidapi_youtube_api_key = self._get_optional_env("RAPIDAPI_YOUTUBE_API_KEY")
@@ -180,6 +188,7 @@ class Config:
             "CORS_ORIGINS",
             [
                 "http://localhost:3107",
+                "http://127.0.0.1:3107",
                 "http://sp.localhost:3107",
             ],
         )
@@ -315,6 +324,7 @@ class Config:
     def as_runtime_settings(self) -> dict[str, str | None]:
         return {
             "ASSEMBLY_AI_API_KEY": self.assembly_ai_api_key,
+            "ELEVENLABS_API_KEY": self.elevenlabs_api_key,
             "LLM": self.llm,
             "OPENAI_API_KEY": self.openai_api_key,
             "OPENROUTER_API_KEY": self.openrouter_api_key,
@@ -387,7 +397,7 @@ class Config:
     @staticmethod
     def _normalize_transcription_provider(value: str | None) -> str:
         normalized = (value or "").strip().lower().replace("-", "_")
-        if normalized in ("whisper", "youtube_captions"):
+        if normalized in ("whisper", "youtube_captions", "elevenlabs"):
             return normalized
         return "assemblyai"
 

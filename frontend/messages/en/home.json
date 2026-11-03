@@ -49,6 +49,8 @@
   "customCaptionColor": "Custom caption color",
   "livePreview": "Live preview",
   "framing": "Framing",
+  "framingMultiHint": "Select one or more — clips are rendered in each format",
+  "framingCount": "{count} formats",
   "framingOptions": {
     "vertical": {
       "label": "Auto 9:16",
@@ -124,7 +126,9 @@
     "short": "Short (15–30s)",
     "medium": "Medium (30–60s)",
     "long": "Long (1–2 min)",
-    "hint": "Target length before pause and filler removal. Your choice is saved as your default.",
+    "extra_long": "Extra long (2–5 min)",
+    "count": "{count} lengths",
+    "hint": "Select one or more — clips are generated at each length before pause and filler removal. Your choices are saved as your default.",
     "saveError": "Could not save your default. This video will still use your choice."
   }
 }

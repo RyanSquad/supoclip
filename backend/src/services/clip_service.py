@@ -18,9 +18,14 @@ from ..clip_editor import (
     merge_clip_files,
     overlay_custom_captions,
 )
-from ..video_utils import VALID_OUTPUT_FORMATS, parse_timestamp_to_seconds, create_optimized_clip
+from ..video_utils import (
+    VALID_OUTPUT_FORMATS,
+    normalize_output_formats,
+    parse_timestamp_to_seconds,
+    create_optimized_clip,
+)
 from ..utils.async_helpers import run_in_thread
-from ..clip_duration import clip_duration, normalize_clip_length
+from ..clip_duration import clip_duration, normalize_clip_length, normalize_clip_lengths
 from ..media.common import MAX_RENDERED_CLIP_SECONDS
 from ..clip_cleanup import normalize_clip_cleanup_settings
 from ..broll import broll_overlays_for, shift_broll_placements
@@ -116,7 +121,7 @@ class ClipEditingMixin:
         source_url = task.get("source_url")
         source_type = task.get("source_type")
         metadata = await self._load_task_source_settings(task_id)
-        output_format = metadata.get("output_format", "vertical")
+        default_output_format = metadata.get("output_format", "vertical")
         add_subtitles = metadata.get("add_subtitles", True)
         cleanup_payload = cleanup_settings or {
             "cut_long_pauses": metadata.get("cut_long_pauses"),
@@ -168,6 +173,9 @@ class ClipEditingMixin:
                 start_time = clip["start_time"]
                 end_time = clip["end_time"]
 
+            clip_format = clip.get("output_format") or default_output_format
+            if clip_format not in VALID_OUTPUT_FORMATS:
+                clip_format = default_output_format
             segments.append(
                 {
                     "start_time": start_time,
@@ -188,6 +196,7 @@ class ClipEditingMixin:
                     "shareability_score": clip.get("shareability_score", 0),
                     "hook_type": clip.get("hook_type"),
                     "hook_title": clip.get("hook_title"),
+                    "output_format": clip_format,
                     "broll": broll,
                 }
             )
@@ -231,14 +240,19 @@ class ClipEditingMixin:
                 font_size,
                 font_color,
                 caption_template,
-                output_format,
+                default_output_format,
                 add_subtitles,
                 normalized_cleanup_settings,
                 max_short_side=output_short_side,
                 # Merged and trimmed clips can run past a short preset; only
                 # cap them as tightly as they were before presets existed.
                 max_clip_seconds=max(
-                    clip_duration(normalize_clip_length(metadata.get("clip_length"))).maximum,
+                    max(
+                        clip_duration(length).maximum
+                        for length in normalize_clip_lengths(
+                            metadata.get("clip_lengths", metadata.get("clip_length")),
+                        )
+                    ),
                     MAX_RENDERED_CLIP_SECONDS,
                 ),
                 include_broll=include_broll,
@@ -282,6 +296,9 @@ class ClipEditingMixin:
                 shareability_score=clip_info.get("shareability_score", 0),
                 hook_type=clip_info.get("hook_type"),
                 hook_title=clip_info.get("hook_title"),
+                output_format=clip_info.get("output_format") or (
+                    segments[i].get("output_format") if i < len(segments) else None
+                ) or default_output_format,
             )
             clip_ids.append(clip_id)
 
@@ -413,6 +430,7 @@ class ClipEditingMixin:
             shareability_score=clip.get("shareability_score", 0),
             hook_type=clip.get("hook_type"),
             hook_title=clip.get("hook_title"),
+            output_format=clip.get("output_format"),
         )
 
         await self.clip_repo.reorder_task_clips(self.db, task_id)
@@ -687,8 +705,10 @@ class ClipEditingMixin:
     async def _load_task_source_settings(self, task_id: str) -> Dict[str, Any]:
         defaults = {
             "output_format": "vertical",
+            "output_formats": ["vertical"],
             "add_subtitles": True,
             "clip_length": "auto",
+            "clip_lengths": ["auto"],
             **normalize_clip_cleanup_settings(),
         }
         parsed = (
@@ -725,18 +745,25 @@ class ClipEditingMixin:
             if not isinstance(parsed, dict):
                 return defaults
 
-        output_format = parsed.get("output_format", defaults["output_format"])
-        if output_format not in VALID_OUTPUT_FORMATS:
-            output_format = defaults["output_format"]
+        output_formats = normalize_output_formats(
+            parsed.get("output_formats", parsed.get("output_format", defaults["output_format"])),
+            fallback=defaults["output_format"],
+        )
 
         add_subtitles = parsed.get("add_subtitles", defaults["add_subtitles"])
         if not isinstance(add_subtitles, bool):
             add_subtitles = defaults["add_subtitles"]
 
+        clip_lengths = normalize_clip_lengths(
+            parsed.get("clip_lengths", parsed.get("clip_length")),
+            fallback=normalize_clip_length(parsed.get("clip_length")),
+        )
         return {
-            "output_format": output_format,
+            "output_format": output_formats[0],
+            "output_formats": output_formats,
             "add_subtitles": add_subtitles,
-            "clip_length": normalize_clip_length(parsed.get("clip_length")),
+            "clip_length": clip_lengths[0],
+            "clip_lengths": clip_lengths,
             **normalize_clip_cleanup_settings(
                 parsed.get("cut_long_pauses"),
                 parsed.get("pause_threshold_ms"),
