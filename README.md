@@ -1,10 +1,10 @@
 <p align="center">
   <a href="https://clips.gungle.ai">
-    <img src="assets/banner.jpg" alt="GungleClips dashboard with video input, caption controls, and recent clips" width="100%" />
+    <img src="assets\banner.jpg" alt="GungleClips dashboard with video input, caption controls, and recent clips" width="100%" />
   </a>
 </p>
 
-<h3 align="center">Fuck OpusClip.</h3>
+<h3 align="center">Goodbye OpusClip.</h3>
 
 <p align="center">
   ... because good video clips shouldn't come with ugly watermarks or platform lock-in.
