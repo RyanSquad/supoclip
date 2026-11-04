@@ -23,7 +23,7 @@ export const INVALID_CREATOR_CODE = "invalid_creator_code";
 
 const RESERVED_SLUGS = new Set([
   "admin", "affiliate", "affiliates", "api", "billing", "creator", "creators", "free", "help",
-  "official", "pro", "scale", "settings", "staff", "support", "supoclip", "team", "test",
+  "official", "pro", "scale", "settings", "staff", "support", "gungleclips", "team", "test",
 ]);
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,18})[a-z0-9]$/;
 
@@ -41,7 +41,7 @@ export function validateSlug(raw: unknown): SlugCheck {
   if (!SLUG_PATTERN.test(slug) || slug.includes("--")) {
     return { ok: false, error: "Use letters, numbers and single hyphens, starting and ending with a letter or number." };
   }
-  if (RESERVED_SLUGS.has(slug) || slug.startsWith("supoclip")) {
+  if (RESERVED_SLUGS.has(slug) || slug.startsWith("gungleclips")) {
     return { ok: false, error: "That code is reserved." };
   }
   return { ok: true, slug };

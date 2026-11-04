@@ -6,6 +6,7 @@ import { createTranslator } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { intlLocale } from "@/i18n/config";
 import { getPrismaClient } from "@/server/prisma";
+import { BrandSurface } from "@/components/marketing/brand-surface";
 
 export const dynamic = "force-dynamic";
 
@@ -62,12 +63,13 @@ export default async function StatusPage() {
     return null;
   });
   return (
-    <main className="min-h-screen bg-canvas text-foreground">
+    <BrandSurface>
+    <main className="min-h-screen text-foreground">
       <header className="border-b bg-background">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="" width={24} height={24} className="rounded-lg dark:invert" />
-            <span className="font-display text-lg font-bold">SupoClip</span>
+            <Image src="/logo.png" alt="" width={24} height={24} />
+            <span className="font-display text-lg font-bold">GungleClips</span>
           </Link>
           <span className="text-sm text-muted-foreground">{t("title")}</span>
         </div>
@@ -118,5 +120,6 @@ export default async function StatusPage() {
         </Link>
       </div>
     </main>
+    </BrandSurface>
   );
 }

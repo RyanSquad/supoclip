@@ -67,7 +67,8 @@ export function useEditor(endpoint: string) {
     saved = useRef("");
   const inFlight = useRef<Promise<void> | null>(null);
   const mounted = useRef(true);
-  const cacheKey = `supoclip-editor:${endpoint}`;
+  const cacheKey = `gungleclips-editor:${endpoint}`;
+  const legacyCacheKey = `supoclip-editor:${endpoint}`;
   const lastEdit = useRef({ group: "", at: 0 });
   const cache = useCallback(
     (value: History) => {
@@ -81,12 +82,13 @@ export function useEditor(endpoint: string) {
             history: value,
           }),
         );
+        localStorage.removeItem(legacyCacheKey);
         setStorageError(false);
       } catch {
         setStorageError(true);
       }
     },
-    [cacheKey],
+    [cacheKey, legacyCacheKey],
   );
   const publish = useCallback(
     (next: History) => {
@@ -216,7 +218,17 @@ export function useEditor(endpoint: string) {
           future: [],
         };
         try {
-          const local = JSON.parse(localStorage.getItem(cacheKey) || "null");
+          const raw =
+            localStorage.getItem(cacheKey) ??
+            (() => {
+              const legacy = localStorage.getItem(legacyCacheKey);
+              if (legacy != null) {
+                localStorage.setItem(cacheKey, legacy);
+                localStorage.removeItem(legacyCacheKey);
+              }
+              return legacy;
+            })();
+          const local = JSON.parse(raw || "null");
           if (
             local?.basis === state.basis &&
             local.history?.present?.version === 1

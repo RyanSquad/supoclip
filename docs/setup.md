@@ -29,13 +29,13 @@ This guide covers the recommended Docker setup, local development mode, and the 
 
 ## Recommended Setup: Docker
 
-Docker is the intended path for running SupoClip because it starts the frontend, backend, worker, PostgreSQL, and Redis together with the expected wiring.
+Docker is the intended path for running GungleClips because it starts the frontend, backend, worker, PostgreSQL, and Redis together with the expected wiring.
 
 ### 1. Clone the repository
 
 ```bash
 git clone <your-repo-url>
-cd supoclip
+cd gungleclips
 ```
 
 ### 2. Create a local environment file
@@ -82,11 +82,11 @@ docker-compose ps
 
 You should see these services:
 
-- `supoclip-frontend`
-- `supoclip-backend`
-- `supoclip-worker`
-- `supoclip-postgres`
-- `supoclip-redis`
+- `gungleclips-frontend`
+- `gungleclips-backend`
+- `gungleclips-worker`
+- `gungleclips-postgres`
+- `gungleclips-redis`
 
 ### 5. Open the application
 
@@ -208,7 +208,7 @@ pnpm run dev
 
 ## Data and Volumes
 
-With Docker, SupoClip stores persistent data in named volumes:
+With Docker, GungleClips stores persistent data in named volumes:
 
 - `postgres_data`
 - `redis_data`
@@ -220,9 +220,13 @@ The backend also mounts these local directories:
 - `backend/fonts`
 - `backend/transitions`
 
+## Rebrand note
+
+If you are upgrading from a SupoClip-named install (containers, Postgres user/db, MCP package), see [Rebrand migration](./rebrand-migration.md).
+
 ## Hosted Mode Versus Self-Hosted Mode
 
-SupoClip defaults to self-host mode:
+GungleClips defaults to self-host mode:
 
 ```env
 SELF_HOST=true

@@ -16,7 +16,7 @@ if urlparse(base).hostname not in {"127.0.0.1", "localhost", "::1"}:
 uid = os.environ["LOCAL_TEST_USER_ID"]
 secret = os.environ["BACKEND_AUTH_SECRET"].encode()
 fixture = Path(os.environ["LOCAL_TEST_VIDEO_PATH"])
-artifacts = Path(os.environ.get("LOCAL_TEST_ARTIFACTS", "/tmp/supoclip-live-tests"))
+artifacts = Path(os.environ.get("LOCAL_TEST_ARTIFACTS", "/tmp/gungleclips-live-tests"))
 artifacts.mkdir(parents=True, exist_ok=True)
 redis_port = int(os.environ.get("REDIS_PORT", "6379"))
 checks = []
@@ -25,9 +25,9 @@ checks = []
 def request(method, path, expected=200, **kwargs):
     ts = str(int(time.time()))
     headers = {
-        "x-supoclip-user-id": uid,
-        "x-supoclip-ts": ts,
-        "x-supoclip-signature": hmac.new(
+        "x-gungleclips-user-id": uid,
+        "x-gungleclips-ts": ts,
+        "x-gungleclips-signature": hmac.new(
             secret, f"{uid}:{ts}".encode(), hashlib.sha256
         ).hexdigest(),
     }
@@ -57,7 +57,7 @@ async def wait_job(jid):
     pool = await create_pool(RedisSettings(host="127.0.0.1", port=redis_port))
     try:
         for _ in range(180):
-            status = await Job(jid, pool, _queue_name="supoclip_tasks").status()
+            status = await Job(jid, pool, _queue_name="gungleclips_tasks").status()
             if status.value in ["complete", "not_found"]:
                 return
             await asyncio.sleep(1)

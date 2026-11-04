@@ -51,7 +51,7 @@ export function ForgotPassword() {
               required
               disabled={loading}
             />
-            <Button type="submit" className="h-11 w-full" disabled={loading}>
+            <Button type="submit" className="marketing-cta h-11 w-full rounded-none" disabled={loading}>
               {loading ? t("forgot.submitting") : t("forgot.submit")}
             </Button>
           </form>

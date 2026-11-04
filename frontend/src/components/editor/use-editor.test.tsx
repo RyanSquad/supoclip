@@ -67,7 +67,7 @@ function cachedEditor(present: typeof draft, revision = 0, serverRevision = 0, s
     basis: "clip.mp4", revision, saved: JSON.stringify(draft),
     history: { past: [draft], present, future: [draft] },
   };
-  const storage = new Map([["supoclip-editor:/test/editor", JSON.stringify(local)]]);
+  const storage = new Map([["gungleclips-editor:/test/editor", JSON.stringify(local)]]);
   vi.stubGlobal("localStorage", {
     getItem: (key: string) => storage.get(key) ?? null,
     setItem: (key: string, value: string) => storage.set(key, value),

@@ -64,7 +64,7 @@ async function setup(page: Page, options: { document?: EditDocument; legacyCache
   if (options.legacyCache) await page.addInitScript((document) => {
     const legacy = { ...document };
     delete legacy.broll;
-    localStorage.setItem("supoclip-editor:/api/tasks/one/clips/clip1/editor", JSON.stringify({
+    localStorage.setItem("gungleclips-editor:/api/tasks/one/clips/clip1/editor", JSON.stringify({
       basis: "clip1.mp4", revision: 0, saved: JSON.stringify(legacy),
       history: { past: [], present: legacy, future: [] },
     }));

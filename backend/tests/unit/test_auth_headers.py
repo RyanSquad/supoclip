@@ -40,9 +40,9 @@ def test_get_signed_user_id_rejects_expired_signature():
     config.auth_signature_ttl_seconds = 1
     request = _build_request(
         {
-            "x-supoclip-user-id": "user-1",
-            "x-supoclip-ts": str(int(time.time()) - 10),
-            "x-supoclip-signature": "invalid",
+            "x-gungleclips-user-id": "user-1",
+            "x-gungleclips-ts": str(int(time.time()) - 10),
+            "x-gungleclips-signature": "invalid",
         }
     )
 
@@ -58,7 +58,7 @@ def test_get_authenticated_user_id_allows_unsigned_fallback_when_enabled():
     config.allow_unsigned_backend_auth = True
 
     user_id = get_authenticated_user_id(
-        _build_request({"x-supoclip-user-id": "user-1"}),
+        _build_request({"x-gungleclips-user-id": "user-1"}),
         config,
     )
 
@@ -74,9 +74,9 @@ def test_get_authenticated_user_id_keeps_rejecting_bad_signed_headers():
         get_authenticated_user_id(
             _build_request(
                 {
-                    "x-supoclip-user-id": "user-1",
-                    "x-supoclip-ts": str(int(time.time())),
-                    "x-supoclip-signature": "invalid",
+                    "x-gungleclips-user-id": "user-1",
+                    "x-gungleclips-ts": str(int(time.time())),
+                    "x-gungleclips-signature": "invalid",
                 }
             ),
             config,
@@ -86,6 +86,27 @@ def test_get_authenticated_user_id_keeps_rejecting_bad_signed_headers():
 
 
 def test_get_authenticated_user_id_accepts_valid_signed_headers():
+    config = Config()
+    config.backend_auth_secret = "secret"
+    timestamp = str(int(time.time()))
+    payload = f"user-1:{timestamp}".encode("utf-8")
+    signature = hmac.new(b"secret", payload, hashlib.sha256).hexdigest()
+
+    user_id = get_authenticated_user_id(
+        _build_request(
+            {
+                "x-gungleclips-user-id": "user-1",
+                "x-gungleclips-ts": timestamp,
+                "x-gungleclips-signature": signature,
+            }
+        ),
+        config,
+    )
+
+    assert user_id == "user-1"
+
+
+def test_get_authenticated_user_id_accepts_legacy_supoclip_headers():
     config = Config()
     config.backend_auth_secret = "secret"
     timestamp = str(int(time.time()))

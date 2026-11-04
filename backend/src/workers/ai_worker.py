@@ -10,7 +10,7 @@ Run with: arq src.workers.ai_worker.AIWorkerSettings
 import os
 
 # Before observability reads it: logs and errors from here are the AI worker's.
-os.environ["SUPOCLIP_SERVICE"] = "ai-worker"
+os.environ["GUNGLECLIPS_SERVICE"] = "ai-worker"
 
 from arq.connections import RedisSettings  # noqa: E402
 from arq.worker import func  # noqa: E402

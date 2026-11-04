@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://www.supoclip.com">
-    <img src="assets/banner.jpg" alt="SupoClip dashboard with video input, caption controls, and recent clips" width="100%" />
+  <a href="https://clips.gungle.ai">
+    <img src="assets/banner.jpg" alt="GungleClips dashboard with video input, caption controls, and recent clips" width="100%" />
   </a>
 </p>
 
@@ -12,41 +12,30 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="License: AGPL-3.0" /></a>
-  <a href="https://www.supoclip.com"><img src="https://img.shields.io/badge/hosted-supoclip.com-black.svg" alt="Hosted at supoclip.com" /></a>
+  <a href="https://clips.gungle.ai"><img src="https://img.shields.io/badge/hosted-clips.gungle.ai-black.svg" alt="Hosted at clips.gungle.ai" /></a>
   <a href="docs/README.md"><img src="https://img.shields.io/badge/docs-docs%2F-green.svg" alt="Documentation" /></a>
-</p>
-
-<p align="center">
-  <a href="https://apps.apple.com/us/app/supoclip/id6784760040">
-    <img src="frontend/public/app-store-badge.svg" alt="Download SupoClip on the App Store" height="40" />
-  </a>
-  &nbsp;
-  <a href="https://www.producthunt.com/products/supoclip?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-supoclip" target="_blank" rel="noopener noreferrer">
-    <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1276786&theme=dark" alt="SupoClip on Product Hunt" height="40" />
-  </a>
 </p>
 
 ---
 
-SupoClip is an open-source, AI-powered video clipping tool. Give it a long video — a podcast, a talk, a stream VOD — and it finds the most viral-worthy moments, scores them, and renders them as vertical 9:16 clips with face-centered cropping, word-synced subtitles, hook titles, and optional B-roll. Run it yourself, customize it, inspect it — or use the hosted version and skip the setup.
+GungleClips is an open-source, AI-powered video clipping tool. Give it a long video — a podcast, a talk, a stream VOD — and it finds the most viral-worthy moments, scores them, and renders them as vertical 9:16 clips with face-centered cropping, word-synced subtitles, hook titles, and optional B-roll. Run it yourself, customize it, inspect it — or use the hosted version and skip the setup.
 
-**See it first:** [watch real clips SupoClip generated](https://www.supoclip.com/demo) from a long-form interview, or follow the [self-hosting tutorial](https://www.supoclip.com/blog/self-host-supoclip-docker) to run it on your own machine.
+**See it first:** [watch real clips GungleClips generated](https://clips.gungle.ai/demo) from a long-form interview, or follow the [self-hosting tutorial](https://clips.gungle.ai/blog/self-host-supoclip-docker) to run it on your own machine.
 
-## Ways to Use SupoClip
+## Ways to Use GungleClips
 
 | Option | Details |
 |---|---|
-| **Hosted web app** | [www.supoclip.com](https://www.supoclip.com) — no infrastructure to run |
-| **iOS app** | [SupoClip on the App Store](https://apps.apple.com/us/app/supoclip/id6784760040) — the same hosted pipeline, from your iPhone |
-| **Self-host** | Docker Compose setup below, or the step-by-step [self-hosting tutorial](https://www.supoclip.com/blog/self-host-supoclip-docker) — AGPL-3.0, unlimited usage on your own hardware |
-| **MCP server** | [`mcp/`](mcp/) — use SupoClip from Claude, Cursor, and other MCP clients |
+| **Hosted web app** | [clips.gungle.ai](https://clips.gungle.ai) — no infrastructure to run |
+| **Self-host** | Docker Compose setup below, or the step-by-step [self-hosting tutorial](https://clips.gungle.ai/blog/self-host-supoclip-docker) — AGPL-3.0, unlimited usage on your own hardware |
+| **MCP server** | [`mcp/`](mcp/) — use GungleClips from Claude, Cursor, and other MCP clients |
 | **REST API** | API keys from `/settings/api-keys` authenticate the backend directly — see the [API reference](docs/api-reference.md) |
 
-## Why SupoClip Exists
+## Why GungleClips Exists
 
 OpusClip is genuinely good at what it does — AI clip selection, accurate captions, virality scoring. But your usage is metered by plan, some exports carry platform branding, and your content and workflows live on their servers under their terms.
 
-SupoClip gives you the same core pipeline without the leash:
+GungleClips gives you the same core pipeline without the leash:
 
 - **Self-hostable** — run it on your own hardware, process as much as it can handle
 - **No watermarks** — your content stays yours
@@ -73,8 +62,8 @@ SupoClip gives you the same core pipeline without the leash:
 You need Docker, an [AssemblyAI](https://www.assemblyai.com/) API key for transcription, and one LLM provider key (Google, OpenAI, Anthropic, or a local Ollama).
 
 ```bash
-git clone https://github.com/FujiwaraChoki/supoclip.git
-cd supoclip
+git clone https://github.com/gungle-ai/gungleclips.git
+cd gungleclips
 ```
 
 Create a `.env` in the root with your keys:
@@ -95,7 +84,7 @@ First startup takes a few minutes; watch it with `docker-compose logs -f`. Once 
 
 The template sets `FRONTEND_PORT=3107`. Existing deployments without this setting keep port `3001`; preserve that port if your production reverse proxy uses it. See the [setup guide](docs/setup.md) for custom ports and public URLs.
 
-To run fully local with Whisper and Ollama (including the Docker networking Ollama needs), see the [self-hosting tutorial](https://www.supoclip.com/blog/self-host-supoclip-docker#local). To use a different LLM provider or configure the optional pieces (B-roll, analytics, emails, YouTube metadata), see the [configuration guide](docs/configuration.md). If something misbehaves, the [troubleshooting guide](docs/troubleshooting.md) covers the common failure modes.
+To run fully local with Whisper and Ollama (including the Docker networking Ollama needs), see the [self-hosting tutorial](https://clips.gungle.ai/blog/self-host-supoclip-docker#local). To use a different LLM provider or configure the optional pieces (B-roll, analytics, emails, YouTube metadata), see the [configuration guide](docs/configuration.md). If something misbehaves, the [troubleshooting guide](docs/troubleshooting.md) covers the common failure modes.
 
 ## Documentation
 
@@ -121,6 +110,6 @@ make test
 
 ## License
 
-SupoClip is released under the [AGPL-3.0 License](LICENSE).
+GungleClips is released under the [AGPL-3.0 License](LICENSE).
 
 Contributions are accepted under the terms in [CONTRIBUTING.md](CONTRIBUTING.md), including a license grant that allows the project owner to sublicense and relicense contributed code.

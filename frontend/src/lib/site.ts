@@ -1,20 +1,19 @@
-export const SITE_NAME = "SupoClip";
-export const COMPANY_NAME = "Shiori LLC";
-export const COMPANY_REGISTRATION_NUMBER = "10603065";
-export const COMPANY_REGISTERED_ADDRESS = "8 The Green, Suite B, Dover, DE 19901, United States";
-export const DEFAULT_SITE_URL = "https://www.supoclip.com";
+export const SITE_NAME = "GungleClips";
+export const COMPANY_NAME = "Gungle.ai";
+export const COMPANY_REGISTRATION_NUMBER = "";
+export const COMPANY_REGISTERED_ADDRESS = "";
+export const DEFAULT_SITE_URL = "https://clips.gungle.ai";
 export const HOSTED_APP_URL = DEFAULT_SITE_URL;
-export const GITHUB_URL = "https://github.com/FujiwaraChoki/supoclip";
-export const APP_STORE_ID = "6784760040";
-export const APP_STORE_URL = `https://apps.apple.com/us/app/supoclip/id${APP_STORE_ID}`;
-export const PRODUCT_HUNT_URL =
-  "https://www.producthunt.com/products/supoclip?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-supoclip";
-/** Product Hunt's launch badge; it shows the live upvote count once the launch is up. */
-export const PRODUCT_HUNT_BADGE_URL =
-  "https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1276786&theme=dark";
+export const GITHUB_URL = "https://github.com/gungle-ai/gungleclips";
+export const APP_STORE_ID = "";
+export const APP_STORE_URL = "";
+export const PRODUCT_HUNT_URL = "";
+/** Product Hunt's launch badge; empty until a GungleClips launch is live. */
+export const PRODUCT_HUNT_BADGE_URL = "";
 
 /** Opens the App Store's offer-code redemption for a creator's custom code (the "Creator offer"). */
 export function appStoreRedeemUrl(code: string) {
+  if (!APP_STORE_ID) return "";
   return `https://apps.apple.com/redeem?ctx=offercodes&id=${APP_STORE_ID}&code=${encodeURIComponent(code.toUpperCase())}`;
 }
 

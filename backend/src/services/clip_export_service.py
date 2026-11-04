@@ -37,7 +37,7 @@ CLIP_EXPORT_TTL = timedelta(days=7)
 CLIP_EXPORT_TTL_SECONDS = int(CLIP_EXPORT_TTL.total_seconds())
 # A running worker touches the row every couple of seconds. A few minutes
 # without a touch means that worker is gone. Queued rows do not heartbeat:
-# they share supoclip_tasks with generation jobs that can run much longer.
+# they share gungleclips_tasks with generation jobs that can run much longer.
 CLIP_EXPORT_STALE_SECONDS = 180
 # Backstop for a queued export whose worker job never starts.
 CLIP_EXPORT_QUEUE_MAX_SECONDS = 60 * 60
@@ -326,9 +326,9 @@ async def start_export(
     )
     await db.commit()
     try:
-        # Stay on supoclip_tasks. ARQ has no priority argument, and deferring
+        # Stay on gungleclips_tasks. ARQ has no priority argument, and deferring
         # to the past expires the job key immediately (expiry is score minus
-        # enqueue time). supoclip_fast has no worker. A shared max_jobs pool
+        # enqueue time). gungleclips_fast has no worker. A shared max_jobs pool
         # also cannot reserve a slot without a custom poll loop.
         await queue.enqueue_job(
             CLIP_EXPORT_JOB_NAME,

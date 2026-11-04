@@ -7,7 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..media_storage import media_work
 
-_EDIT_TASK = "supoclip_edit_task"
+_EDIT_TASK = "gungleclips_edit_task"
 
 
 async def commit_unless_editing(db: AsyncSession) -> None:

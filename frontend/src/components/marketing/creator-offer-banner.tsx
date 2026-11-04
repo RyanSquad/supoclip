@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 
 import { captureCreatorCodeFromUrl } from "@/lib/creator-code";
 
-const DISMISSED_KEY = "supoclip:creator-offer-dismissed";
+const DISMISSED_KEY = "gungleclips:creator-offer-dismissed";
 
 /** Quiet note for visitors who arrived through a creator's link. */
 export function CreatorOfferBanner() {

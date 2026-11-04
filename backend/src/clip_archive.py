@@ -75,16 +75,16 @@ def archive_entry_names(clips: list[dict[str, Any]]) -> list[str]:
 
 
 def archive_filename(title: str | None) -> str:
-    return f"{slugify(title) or 'supoclip'}-clips.zip"
+    return f"{slugify(title) or 'gungleclips'}-clips.zip"
 
 
 def content_disposition(filename: str) -> str:
     """Attachment header with an ASCII fallback and an RFC 5987 UTF-8 name."""
     ascii_name = unicodedata.normalize("NFKD", filename).encode("ascii", "ignore").decode()
     ascii_name = re.sub(r"[^A-Za-z0-9._-]+", "-", ascii_name)
-    ascii_name = re.sub(r"-{2,}", "-", ascii_name).strip("-.") or "supoclip-clips.zip"
+    ascii_name = re.sub(r"-{2,}", "-", ascii_name).strip("-.") or "gungleclips-clips.zip"
     if not ascii_name.endswith(".zip"):
-        ascii_name = "supoclip-clips.zip"
+        ascii_name = "gungleclips-clips.zip"
     return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quote(filename, safe='')}"
 
 

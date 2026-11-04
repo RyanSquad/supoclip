@@ -28,7 +28,7 @@ it("streams signed editor media with ranges on the authenticated origin, without
   vi.stubGlobal("fetch", storageFetch);
   const request = new Request("https://app.example/api/tasks/" + path.join("/"), { headers: {
     Range: "bytes=0-7", "If-Range": '"etag"', Accept: "video/*",
-    Cookie: "private-session", Authorization: "Bearer private", "x-supoclip-signature": "private",
+    Cookie: "private-session", Authorization: "Bearer private", "x-gungleclips-signature": "private",
   } });
   expect(request.headers.get("range")).toBe("bytes=0-7");
   const response = await GET(request, context());

@@ -60,7 +60,7 @@ it("keeps the last announcements when the feed is briefly unavailable", async ()
 });
 
 it("shows new announcements even when an older update has been read", async () => {
-  window.localStorage.setItem("supoclip:announcements-read:visitor", '["older-update"]');
+  window.localStorage.setItem("gungleclips:announcements-read:visitor", '["older-update"]');
   render(<Announcements landing />);
   expect(await screen.findByRole("button", { name: "What's new, 1 unread announcement" })).toBeVisible();
 });

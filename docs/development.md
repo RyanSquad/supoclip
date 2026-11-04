@@ -1,6 +1,6 @@
 # Development
 
-This guide is for contributors working on SupoClip locally.
+This guide is for contributors working on GungleClips locally.
 
 ## Repository Layout
 
@@ -255,12 +255,12 @@ cd frontend && pnpm run test:e2e
 Useful backend test env vars:
 
 ```bash
-DATABASE_URL=postgresql+asyncpg://localhost:5432/supoclip
-TEST_DATABASE_URL=postgresql+asyncpg://localhost:5432/supoclip
+DATABASE_URL=postgresql+asyncpg://localhost:5432/gungleclips
+TEST_DATABASE_URL=postgresql+asyncpg://localhost:5432/gungleclips
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
-BACKEND_AUTH_SECRET=supoclip_test_secret
-BETTER_AUTH_SECRET=supoclip_better_auth_test_secret
+BACKEND_AUTH_SECRET=gungleclips_test_secret
+BETTER_AUTH_SECRET=gungleclips_better_auth_test_secret
 ```
 
 ### Coverage and CI

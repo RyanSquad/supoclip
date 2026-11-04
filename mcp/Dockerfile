@@ -22,4 +22,4 @@ RUN uv pip install .
 
 EXPOSE 9100
 
-CMD ["supoclip-mcp"]
+CMD ["gungleclips-mcp"]

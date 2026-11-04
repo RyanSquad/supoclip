@@ -13,10 +13,10 @@ describe("authentication browser origins", () => {
 
   it("preserves hosted production's origin list when no extras are configured", () => {
     expect(getAuthTrustedOrigins({
-      NEXT_PUBLIC_SELF_HOST: "false", NEXT_PUBLIC_APP_URL: "https://www.supoclip.com",
-      BETTER_AUTH_URL: "https://www.supoclip.com",
+      NEXT_PUBLIC_SELF_HOST: "false", NEXT_PUBLIC_APP_URL: "https://clips.gungle.ai",
+      BETTER_AUTH_URL: "https://clips.gungle.ai",
     })).toEqual([
-      "https://www.supoclip.com", "http://localhost:3107", "http://sp.localhost:3107", "http://supoclip.localhost:3107",
+      "https://clips.gungle.ai", "http://localhost:3107", "http://sp.localhost:3107", "http://gungleclips.localhost:3107",
     ]);
   });
 

@@ -33,9 +33,9 @@ async def key_client(monkeypatch):
     app.dependency_overrides[get_db] = lambda: db
     timestamp = str(int(time.time()))
     headers = {
-        "x-supoclip-user-id": user.id,
-        "x-supoclip-ts": timestamp,
-        "x-supoclip-signature": hmac.new(b"test-secret", f"{user.id}:{timestamp}".encode(), hashlib.sha256).hexdigest(),
+        "x-gungleclips-user-id": user.id,
+        "x-gungleclips-ts": timestamp,
+        "x-gungleclips-signature": hmac.new(b"test-secret", f"{user.id}:{timestamp}".encode(), hashlib.sha256).hexdigest(),
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as http:
         yield http, headers, user, service, mail, result
@@ -77,7 +77,7 @@ async def test_unverified_user_can_list_and_revoke(key_client):
 
 async def test_api_key_cannot_authenticate_mint(key_client):
     http, _, _, service, _, _ = key_client
-    response = await http.post("/api-keys/", headers={"Authorization": "Bearer sk_existing", "x-supoclip-user-id": "user-1"}, json={})
+    response = await http.post("/api-keys/", headers={"Authorization": "Bearer sk_existing", "x-gungleclips-user-id": "user-1"}, json={})
     assert response.status_code == 401
     service.create_api_key.assert_not_awaited()
 

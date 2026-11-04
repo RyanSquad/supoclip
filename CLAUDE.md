@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SupoClip is an open-source alternative to OpusClip — an AI-powered video clipping tool that transforms long-form content into viral short clips. AGPL-3.0 licensed.
+GungleClips is an open-source alternative to OpusClip — an AI-powered video clipping tool that transforms long-form content into viral short clips. AGPL-3.0 licensed.
 
 ## Development Commands
 
@@ -19,7 +19,7 @@ docker-compose logs -f ai-worker  # Debug AI editing in the clip studio
 docker-compose down               # Stop all services
 ```
 
-Services: Frontend (:3107), Backend API (:8000, docs at /docs), Worker (ARQ), AI worker (ARQ, `supoclip_ai` queue), PostgreSQL (:5432), Redis (:6379)
+Services: Frontend (:3107), Backend API (:8000, docs at /docs), Worker (ARQ), AI worker (ARQ, `gungleclips_ai` queue), PostgreSQL (:5432), Redis (:6379)
 
 ### Backend (local)
 
@@ -133,7 +133,7 @@ PostgreSQL 15. Schema in `init.sql`. Mixed naming conventions:
 | `src/clip_editor.py` | Clip trim, split, merge, export presets |
 | `src/editor_document.py` | Clip studio draft model (segments, words, captions, framing, B-roll) and server render |
 | `src/services/ai_edit_service.py` | Studio AI editing: Sonnet 5.5 plans typed operations, applied and validated here |
-| `src/workers/ai_worker.py` | Light ARQ worker for AI edits (`supoclip_ai` queue, own container) |
+| `src/workers/ai_worker.py` | Light ARQ worker for AI edits (`gungleclips_ai` queue, own container) |
 | `src/broll.py` | Pexels API B-roll integration |
 | `src/caption_templates.py` | Caption template system |
 | `src/config.py` | Environment variable configuration |
@@ -299,7 +299,7 @@ Personalized analyses skip the shared `processing_cache` analysis entry.
   all platforms unconfigured (clients hide publishing unless `enabled` is exactly true) and the
   disconnect routes (account deletion revokes tokens).
 - **iOS app:** `POST .../authorize` with `{"client": "ios"}` prefixes the OAuth state with `m.`; the
-  web callback then redirects to `supoclip://social-callback?provider&code&state` and the app
+  web callback then redirects to `gungleclips://social-callback?provider&code&state` and the app
   completes `/callback` with its own session (the state stays bound to the starting user).
 - **Platform approvals gate real users:** TikTok only allows sandbox target users until its audit,
   Instagram only app testers until Meta review, and YouTube uploads from an unaudited project stay
@@ -332,8 +332,8 @@ Edit `backend/src/ai.py`: `simplified_system_prompt` controls selection criteria
 
 ## Observability
 
-Errors and analytics go to PostHog (project "SupoClip", EU, id `314504`); logs go to
-Axiom (dataset `supoclip-prod`). Everything is off unless tokens are set. Details in
+Errors and analytics go to PostHog (project "GungleClips", EU, id `314504`); logs go to
+Axiom (dataset `gungleclips-prod`). Everything is off unless tokens are set. Details in
 `docs/observability.md`.
 
 - **Backend/worker:** `src/observability.py` sends every log record with a traceback to
@@ -345,12 +345,12 @@ Axiom (dataset `supoclip-prod`). Everything is off unless tokens are set. Detail
 - **Correlation:** an exception's `trace_id` property matches `trace_id` in Axiom logs
   (worker jobs: `task-<id>`); the PostHog distinct id is the Better Auth user id everywhere.
 - **Logs:** the `vector` service (`observability/vector.yaml`, compose profile `axiom`)
-  ships `supoclip-*` container logs and the host nginx's SupoClip logs.
+  ships `gungleclips-*` container logs and the host nginx's GungleClips logs.
 
 ## iOS App
 
 A native iOS app ships on the App Store
-(https://apps.apple.com/us/app/supoclip/id6784760040, app id `6784760040`). Its
+(https://apps.apple.com/us/app/gungleclips/id6784760040, app id `6784760040`). Its
 source lives outside this repo. It talks to the hosted API and bills through
 RevenueCat, which is what `frontend/src/app/api/billing/revenuecat-webhook/`
 serves; App Store subscribers are blocked from Stripe checkout/portal by the
@@ -374,14 +374,14 @@ high-cap fallback actors are not called. Runbook: `docs/youtube-download.md`.
 ## MCP Server
 
 `mcp/` is a standalone [MCP](https://modelcontextprotocol.io) server
-(`supoclip-mcp`, Python/FastMCP, stdio) that exposes SupoClip to MCP clients
+(`gungleclips-mcp`, Python/FastMCP, stdio) that exposes GungleClips to MCP clients
 (Claude Desktop/Code, Cursor, …). It is a thin client over the REST API.
 
-- **Default target:** the hosted API `https://api.supoclip.com`. Override with
-  `SUPOCLIP_API_URL` for self-hosting (e.g. `http://localhost:8000`).
-- **Auth:** a per-user API key in `SUPOCLIP_API_KEY` (see API keys above).
-  Self-hosters may instead use `SUPOCLIP_USER_ID` (+ `SUPOCLIP_AUTH_SECRET` when
+- **Default target:** the hosted API `https://api.clips.gungle.ai`. Override with
+  `GUNGLECLIPS_API_URL` for self-hosting (e.g. `http://localhost:8000`).
+- **Auth:** a per-user API key in `GUNGLECLIPS_API_KEY` (see API keys above).
+  Self-hosters may instead use `GUNGLECLIPS_USER_ID` (+ `GUNGLECLIPS_AUTH_SECRET` when
   signing is enforced).
 - **Tools:** create/list/get/wait/cancel/resume/delete tasks, list/download/
   export clips, and public discovery (templates, transitions, fonts, B-roll).
-- Run with `cd mcp && uv run supoclip-mcp`. Details in `mcp/README.md`.
+- Run with `cd mcp && uv run gungleclips-mcp`. Details in `mcp/README.md`.

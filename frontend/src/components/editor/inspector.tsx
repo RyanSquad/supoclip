@@ -323,9 +323,10 @@ export function Inspector({
                   onClick={() => {
                     try {
                       localStorage.setItem(
-                        "supoclip-caption-style",
+                        "gungleclips-caption-style",
                         JSON.stringify(doc.captions),
                       );
+                      localStorage.removeItem("supoclip-caption-style");
                       toast.success(t("captions.saved"));
                     } catch {
                       toast.error(t("captions.saveFailed"));
@@ -341,7 +342,15 @@ export function Inspector({
                   onClick={() => {
                     try {
                       const style = JSON.parse(
-                        localStorage.getItem("supoclip-caption-style") ||
+                        localStorage.getItem("gungleclips-caption-style") ||
+                          (() => {
+                            const legacy = localStorage.getItem("supoclip-caption-style");
+                            if (legacy != null) {
+                              localStorage.setItem("gungleclips-caption-style", legacy);
+                              localStorage.removeItem("supoclip-caption-style");
+                            }
+                            return legacy;
+                          })() ||
                           "null",
                       );
                       if (style?.font && style?.size) caption(style);

@@ -77,7 +77,7 @@ export async function SelfHostingGuideArticle({ post }: { post: BlogPost }) {
       <h2 id="install">{t(`${slug}.install.heading`)}</h2>
       <h3>{t(`${slug}.install.clone`)}</h3>
       <CodeBlock label={t(`${slug}.install.labelTerminal`)}>{`
-git clone https://github.com/FujiwaraChoki/supoclip.git
+git clone https://github.com/gungle-ai/gungleclips.git
 cd supoclip
 cp .env.example .env
 `}</CodeBlock>
@@ -191,17 +191,17 @@ services:
       POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}
   frontend:
     environment:
-      DATABASE_URL: postgresql://supoclip:\${POSTGRES_PASSWORD}@postgres:5432/supoclip
+      DATABASE_URL: postgresql://gungleclips:\${POSTGRES_PASSWORD}@postgres:5432/supoclip
   backend:
     environment:
-      DATABASE_URL: postgresql+asyncpg://supoclip:\${POSTGRES_PASSWORD}@postgres:5432/supoclip
+      DATABASE_URL: postgresql+asyncpg://gungleclips:\${POSTGRES_PASSWORD}@postgres:5432/supoclip
   worker:
     environment:
-      DATABASE_URL: postgresql+asyncpg://supoclip:\${POSTGRES_PASSWORD}@postgres:5432/supoclip
+      DATABASE_URL: postgresql+asyncpg://gungleclips:\${POSTGRES_PASSWORD}@postgres:5432/supoclip
 `}</CodeBlock>
       <p>{t.rich(`${slug}.production.existing`, { code })}</p>
       <CodeBlock label={t(`${slug}.production.labelExisting`)}>{`
-docker compose exec -T postgres psql -U supoclip -d supoclip \\
+docker compose exec -T postgres psql -U gungleclips -d gungleclips \\
   -c "ALTER USER supoclip PASSWORD 'your_new_password'"
 docker compose up -d
 `}</CodeBlock>
@@ -215,7 +215,7 @@ docker compose up -d
       <h2 id="upgrade">{t(`${slug}.upgrade.heading`)}</h2>
       <p>{t.rich(`${slug}.upgrade.intro`, { code })}</p>
       <CodeBlock label={t(`${slug}.install.labelTerminal`)}>{`
-docker compose exec -T postgres pg_dump -U supoclip supoclip > supoclip-$(date +%F).sql
+docker compose exec -T postgres pg_dump -U gungleclips supoclip > supoclip-$(date +%F).sql
 docker compose stop frontend backend worker
 old=$(git rev-parse HEAD)
 git pull
@@ -224,7 +224,7 @@ git diff --name-only --diff-filter=A "$old" HEAD -- \\
 `}</CodeBlock>
       <p>{t(`${slug}.upgrade.apply`)}</p>
       <CodeBlock label={t(`${slug}.install.labelTerminal`)}>{`
-docker compose exec -T postgres psql -U supoclip -d supoclip -v ON_ERROR_STOP=1 -1 \\
+docker compose exec -T postgres psql -U gungleclips -d gungleclips -v ON_ERROR_STOP=1 -1 \\
   < frontend/prisma/migrations/<new_migration>/migration.sql
 docker compose up -d --build
 `}</CodeBlock>

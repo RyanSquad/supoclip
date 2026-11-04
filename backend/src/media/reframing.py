@@ -620,7 +620,7 @@ def detect_speaker_reframe_plan(
                 "regions": regions,
             }
 
-        with tempfile.TemporaryDirectory(prefix="supoclip_motion_") as motion_dir:
+        with tempfile.TemporaryDirectory(prefix="gungleclips_motion_") as motion_dir:
             left_motion = Path(motion_dir) / "left.txt"
             right_motion = Path(motion_dir) / "right.txt"
             left = regions["left"]

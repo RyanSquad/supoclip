@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ArrowRight, Captions, ExternalLink, Github, Info, ScanFace, Sparkles, Type, Youtube } from "lucide-react";
+import { BrandSurface } from "@/components/marketing/brand-surface";
 
 import { RelatedGuides } from "@/components/marketing/related-guides";
 import { SiteFooter } from "@/components/marketing/site-footer";
@@ -29,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       url,
-      siteName: "SupoClip",
+      siteName: "GungleClips",
       type: "website",
       videos: DEMO_CLIPS.map((clip) => ({ url: `${getSiteUrl()}${clip.src}`, width: 540, height: 960, type: "video/mp4" })),
     },
@@ -50,7 +51,7 @@ export default async function DemoPage() {
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "SupoClip", item: siteUrl },
+          { "@type": "ListItem", position: 1, name: "GungleClips", item: siteUrl },
           { "@type": "ListItem", position: 2, name: t("demo.badge"), item: `${siteUrl}/demo` },
         ],
       },
@@ -68,17 +69,17 @@ export default async function DemoPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <BrandSurface><main className="min-h-screen text-foreground">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <header className="border-b bg-background/95">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="SupoClip" width={24} height={24} className="rounded-lg dark:invert" />
-            <span className="text-lg font-bold tracking-tight">SupoClip</span>
+            <Image src="/logo.png" alt="GungleClips" width={24} height={24} />
+            <span className="text-lg font-bold tracking-tight">GungleClips</span>
           </Link>
           <nav className="flex items-center gap-2" aria-label={t("chrome.primaryNav")}>
-            <Link href="/blog"><Button variant="ghost" size="sm">{t("chrome.blog")}</Button></Link>
-            <Link href="/sign-up"><Button size="sm">{t("demo.startClipping")}</Button></Link>
+            <Link href="/blog"><Button variant="ghost" size="sm" className="rounded-none text-[var(--gungle-charcoal)]">{t("chrome.blog")}</Button></Link>
+            <Link href="/sign-up"><Button size="sm" className="marketing-cta rounded-none px-4">{t("demo.startClipping")}</Button></Link>
           </nav>
         </div>
       </header>
@@ -167,13 +168,13 @@ export default async function DemoPage() {
           </p>
         </section>
 
-        <section className="mt-16 rounded-2xl border bg-foreground p-6 text-background md:p-8">
+        <section className="marketing-inverse mt-16 rounded-none p-6 md:p-8">
           <h2 className="text-2xl font-bold tracking-tight">{t("demo.ctaTitle")}</h2>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-background/70">{t("demo.ctaBody")}</p>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{t("demo.ctaBody")}</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/sign-up"><Button variant="secondary">{t("demo.startClipping")} <ArrowRight className="h-4 w-4" /></Button></Link>
+            <Link href="/sign-up"><Button className="marketing-cta rounded-none">{t("demo.startClipping")} <ArrowRight className="h-4 w-4" /></Button></Link>
             <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="border-background/30 bg-transparent text-background hover:bg-background hover:text-foreground">
+              <Button variant="outline" className="rounded-none border-2 border-[#f5f5f5] bg-transparent text-[#f5f5f5] hover:bg-[#f5f5f5] hover:text-[var(--gungle-charcoal)]">
                 <Github className="h-4 w-4" /> {t("demo.selfHostGithub")}
               </Button>
             </a>
@@ -185,6 +186,6 @@ export default async function DemoPage() {
         </div>
       </div>
       <SiteFooter />
-    </main>
+    </main></BrandSurface>
   );
 }

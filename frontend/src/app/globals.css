@@ -63,16 +63,18 @@
   --popover-foreground: oklch(0.147 0.004 49.25);
   --primary: oklch(0.216 0.006 56.043);
   --primary-foreground: oklch(0.985 0.001 106.423);
-  --secondary: oklch(0.97 0.001 106.424);
+  --secondary: oklch(0.94 0.002 75);
   --secondary-foreground: oklch(0.216 0.006 56.043);
-  --muted: oklch(0.97 0.001 106.424);
-  --muted-foreground: oklch(0.553 0.013 58.071);
-  --accent: oklch(0.97 0.001 106.424);
+  /* Darker muted surfaces so skeletons/chips separate from white canvas. */
+  --muted: oklch(0.92 0.004 75);
+  /* ~#525252 — meets AA for secondary text on white. */
+  --muted-foreground: oklch(0.42 0.01 50);
+  --accent: oklch(0.94 0.004 75);
   --accent-foreground: oklch(0.216 0.006 56.043);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.923 0.003 48.717);
-  --input: oklch(0.923 0.003 48.717);
-  --ring: oklch(0.709 0.01 56.259);
+  --border: oklch(0.84 0.006 60);
+  --input: oklch(0.84 0.006 60);
+  --ring: oklch(0.55 0.01 50);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -104,7 +106,8 @@
   --secondary: oklch(0.268 0.007 34.298);
   --secondary-foreground: oklch(0.985 0.001 106.423);
   --muted: oklch(0.268 0.007 34.298);
-  --muted-foreground: oklch(0.709 0.01 56.259);
+  /* Lighter secondary text so dark-mode body copy stays AA on charcoal panels. */
+  --muted-foreground: oklch(0.78 0.01 56);
   --accent: oklch(0.268 0.007 34.298);
   --accent-foreground: oklch(0.985 0.001 106.423);
   --destructive: oklch(0.704 0.191 22.216);
@@ -257,4 +260,149 @@
 @keyframes landing-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+
+/*
+ * Gungle.ai marketing surface — scoped so the in-app editor/dashboard
+ * keeps the existing shadcn/stone tokens.
+ *
+ * Contrast rules (WCAG AA on Paper):
+ * - Body / headlines: Charcoal #121212 on Paper #F5F5F5
+ * - Secondary copy: Muted Gray #525252 (never lighter stone muted)
+ * - CTAs: black text on Action Green #0EAA47 (never white on green)
+ * - Green text links: Text Green #0D7734
+ */
+.marketing-surface {
+  --gungle-paper: #f5f5f5;
+  --gungle-charcoal: #121212;
+  --gungle-action: #0eaa47;
+  --gungle-signal: #1dc95c;
+  --gungle-text-green: #0d7734;
+  --gungle-muted: #525252;
+  --gungle-border: #121212;
+  --background: var(--gungle-paper);
+  --foreground: var(--gungle-charcoal);
+  --card: #ffffff;
+  --card-foreground: var(--gungle-charcoal);
+  --popover: #ffffff;
+  --popover-foreground: var(--gungle-charcoal);
+  --primary: var(--gungle-charcoal);
+  --primary-foreground: #ffffff;
+  --secondary: #ffffff;
+  --secondary-foreground: var(--gungle-charcoal);
+  --muted: #ebebeb;
+  --muted-foreground: var(--gungle-muted);
+  --accent: #ebebeb;
+  --accent-foreground: var(--gungle-charcoal);
+  --border: color-mix(in srgb, var(--gungle-charcoal) 18%, transparent);
+  --input: color-mix(in srgb, var(--gungle-charcoal) 22%, transparent);
+  --ring: var(--gungle-charcoal);
+  --brand: var(--gungle-action);
+  --brand-foreground: var(--gungle-charcoal);
+  --brand-soft: color-mix(in srgb, var(--gungle-signal) 22%, white);
+  --canvas: var(--gungle-paper);
+  color-scheme: light;
+  background: var(--gungle-paper);
+  color: var(--gungle-charcoal);
+  font-family: var(--font-bricolage), var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Keep marketing pages light even when the OS/app theme is dark. */
+.dark .marketing-surface,
+.marketing-surface.dark {
+  --background: var(--gungle-paper);
+  --foreground: var(--gungle-charcoal);
+  --card: #ffffff;
+  --card-foreground: var(--gungle-charcoal);
+  --muted: #ebebeb;
+  --muted-foreground: var(--gungle-muted);
+  --primary: var(--gungle-charcoal);
+  --primary-foreground: #ffffff;
+  --border: color-mix(in srgb, var(--gungle-charcoal) 18%, transparent);
+  --brand: var(--gungle-action);
+  --brand-foreground: var(--gungle-charcoal);
+  color-scheme: light;
+}
+
+.marketing-surface .font-display,
+.marketing-surface h1,
+.marketing-surface h2,
+.marketing-surface h3 {
+  font-family: var(--font-bricolage), var(--font-geist-sans), system-ui, sans-serif;
+  color: var(--gungle-charcoal);
+}
+
+.marketing-surface .text-muted-foreground {
+  color: var(--gungle-muted) !important;
+}
+
+.marketing-surface a.text-brand,
+.marketing-surface .text-brand {
+  color: var(--gungle-text-green) !important;
+}
+
+.marketing-surface .marketing-label {
+  font-family: var(--font-space-mono), var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gungle-muted);
+}
+
+.marketing-surface .marketing-cta {
+  background: var(--gungle-action) !important;
+  color: var(--gungle-charcoal) !important;
+  border: 2px solid var(--gungle-charcoal) !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0 var(--gungle-charcoal);
+}
+
+.marketing-surface .marketing-cta:hover {
+  background: var(--gungle-signal) !important;
+  color: var(--gungle-charcoal) !important;
+}
+
+/* asChild links inherit button classes — keep CTA text charcoal, never washed-out. */
+.marketing-surface .marketing-cta *,
+.marketing-surface a.marketing-cta {
+  color: var(--gungle-charcoal) !important;
+}
+
+.marketing-surface .marketing-outline {
+  background: #ffffff !important;
+  color: var(--gungle-charcoal) !important;
+  border: 2px solid var(--gungle-charcoal) !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0 var(--gungle-charcoal);
+}
+
+.marketing-surface .marketing-card {
+  border: 2px solid var(--gungle-charcoal);
+  border-radius: 0;
+  box-shadow: 6px 6px 0 var(--gungle-charcoal);
+  background: #fff;
+  color: var(--gungle-charcoal);
+}
+
+/* Charcoal band for final CTAs — white/off-white copy only. */
+.marketing-surface .marketing-inverse {
+  background: var(--gungle-charcoal);
+  color: #f5f5f5;
+  border: 2px solid var(--gungle-charcoal);
+  box-shadow: 6px 6px 0 color-mix(in srgb, var(--gungle-charcoal) 35%, transparent);
+}
+
+.marketing-surface .marketing-inverse h1,
+.marketing-surface .marketing-inverse h2,
+.marketing-surface .marketing-inverse h3,
+.marketing-surface .marketing-inverse .font-display {
+  color: #f5f5f5;
+}
+
+.marketing-surface .marketing-inverse .text-muted-foreground {
+  color: #c4c4c4 !important;
+}
+
+/* Never invert the green mark on marketing pages. */
+.marketing-surface img[src="/logo.png"] {
+  filter: none !important;
 }

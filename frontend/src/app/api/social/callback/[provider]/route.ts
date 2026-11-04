@@ -7,7 +7,7 @@ import { getServerSession } from "@/server/session";
 
 const SUPPORTED_PROVIDERS = new Set(["youtube", "tiktok", "instagram"]);
 const MOBILE_STATE_PREFIX = "m.";
-const APP_CALLBACK_URL = "supoclip://social-callback";
+const APP_CALLBACK_URL = "gungleclips://social-callback";
 
 function settingsRedirect(query: Record<string, string>) {
   const url = new URL("/settings/social", getSiteUrl());

@@ -3,7 +3,7 @@
 ## Completed from this session
 
 - Vercel project identified: `fujiwarachokis-projects/supoclip`
-- Vercel production URL: `https://www.supoclip.com`
+- Vercel production URL: `https://clips.gungle.ai`
 - Vercel root directory: `frontend`
 - Production env var added in Vercel:
   - `REVENUECAT_WEBHOOK_AUTH_HEADER`
@@ -38,5 +38,5 @@
 6. Verify the RevenueCat dashboard webhook URL is configured as:
 
    ```text
-   https://www.supoclip.com/api/billing/revenuecat-webhook
+   https://clips.gungle.ai/api/billing/revenuecat-webhook
    ```

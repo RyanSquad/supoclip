@@ -73,7 +73,7 @@ export function ClipTile({ clip, taskId, busy, best, editable, showFraming, onOp
       >
         <ClipCover
           src={getClipUrl(clip.video_url, clip.filename)}
-          className="aspect-[9/16] rounded-xl ring-1 ring-black/5 transition-shadow duration-200 group-hover:shadow-xl"
+          className="aspect-[9/16] rounded-xl ring-1 ring-black/15 transition-shadow duration-200 group-hover:shadow-xl"
         >
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/25" />
           {best && (
@@ -344,7 +344,7 @@ export function ProcessingSlots({ status, progress, message, total, className, c
       {children}
       {Array.from({ length: empty }, (_, i) => (
         <div key={`slot-${i}`} aria-hidden className="animate-rise" style={{ animationDelay: `${i * 60}ms` }}>
-          <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-stone-100/70 ring-1 ring-black/[0.04] dark:bg-stone-900/60 dark:ring-white/5">
+          <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-stone-200/90 ring-1 ring-black/15 dark:bg-stone-800 dark:ring-white/15">
             {i === 0 && (
               <span className="absolute inset-[-30%] opacity-40 blur-2xl transition-[background] duration-1000"
                 style={{ background: `radial-gradient(circle at 50% 60%, oklch(0.87 0.05 ${hue}), transparent 60%)` }} />

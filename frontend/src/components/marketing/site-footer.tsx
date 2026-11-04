@@ -45,20 +45,22 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div>
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="SupoClip" width={24} height={24} className="rounded-md dark:invert" />
-            <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-syne), system-ui" }}>
-              SupoClip
+            <Image src="/logo.png" alt="GungleClips" width={24} height={24} />
+            <span className="text-sm font-semibold text-[var(--gungle-charcoal)]" style={{ fontFamily: "var(--font-bricolage), system-ui" }}>
+              GungleClips
             </span>
           </Link>
-          <p className="mt-3 max-w-xs text-xs leading-6 text-muted-foreground">
+          <p className="mt-3 max-w-xs text-xs leading-6 text-[var(--gungle-muted)]">
             {t("footer.tagline")}
           </p>
-          <p className="mt-2 text-xs leading-6 text-muted-foreground">
+          <p className="mt-2 text-xs leading-6 text-[var(--gungle-muted)]">
             {t("footer.operator", { company: COMPANY_NAME })}
           </p>
-          <div className="mt-4 flex gap-4 text-xs text-muted-foreground">
+          <div className="mt-4 flex gap-4 text-xs text-[var(--gungle-muted)]">
             <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={linkClassName}>{t("footer.github")}</a>
-            <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" className={linkClassName}>{t("footer.ios")}</a>
+            {APP_STORE_URL ? (
+              <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer" className={linkClassName}>{t("footer.ios")}</a>
+            ) : null}
             <span>&copy; {new Date().getFullYear()} {COMPANY_NAME}</span>
           </div>
         </div>

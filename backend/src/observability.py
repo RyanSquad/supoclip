@@ -14,7 +14,7 @@ _user_id_ctx: ContextVar[str | None] = ContextVar("user_id", default=None)
 
 # "backend" or "worker"; set per container so logs and error reports say which
 # process they came from.
-SERVICE_NAME = os.getenv("SUPOCLIP_SERVICE", "backend")
+SERVICE_NAME = os.getenv("GUNGLECLIPS_SERVICE") or os.getenv("SUPOCLIP_SERVICE") or "backend"
 
 _posthog_client: Any = None
 

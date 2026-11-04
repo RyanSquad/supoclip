@@ -226,7 +226,7 @@ export async function exportDraft(
     signal.throwIfAborted();
     downloadBlob(
       new Blob([output.target.buffer], { type: "video/mp4" }),
-      `supoclip-${preset}.mp4`,
+      `gungleclips-${preset}.mp4`,
     );
     progress(100);
   } finally {

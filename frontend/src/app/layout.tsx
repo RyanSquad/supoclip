@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
-import { Geist, Geist_Mono, Syne } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono, Space_Mono, Syne } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { AttributionTracker } from "@/components/attribution-tracker";
@@ -30,6 +30,18 @@ const syne = Syne({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+});
+
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+
 const dataFastWebsiteId = process.env.NEXT_PUBLIC_DATAFAST_WEBSITE_ID;
 const dataFastDomain = process.env.NEXT_PUBLIC_DATAFAST_DOMAIN;
 const shouldTrackLocalhost = process.env.NEXT_PUBLIC_DATAFAST_ALLOW_LOCALHOST === "true";
@@ -47,21 +59,19 @@ export async function generateMetadata(): Promise<Metadata> {
   },
   description: t("description"),
   metadataBase: new URL(getSiteUrl()),
-  applicationName: "SupoClip",
-  authors: [{ name: "SupoClip Team", url: getSiteUrl() }],
-  creator: "SupoClip Team",
+  applicationName: "GungleClips",
+  authors: [{ name: "GungleClips Team", url: getSiteUrl() }],
+  creator: "GungleClips Team",
   publisher: COMPANY_NAME,
   category: t("category"),
   icons: {
     icon: "/icon.png",
   },
-  itunes: {
-    appId: APP_STORE_ID,
-  },
+  ...(APP_STORE_ID ? { itunes: { appId: APP_STORE_ID } } : {}),
   openGraph: {
     title: t("title"),
     description: t("openGraphDescription"),
-    siteName: "SupoClip",
+    siteName: "GungleClips",
     type: "website",
   },
   twitter: {
@@ -131,7 +141,7 @@ export default async function RootLayout({
           </>
         ) : null}
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} ${bricolage.variable} ${spaceMono.variable} antialiased`}>
         <ThemeProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <TooltipProvider>

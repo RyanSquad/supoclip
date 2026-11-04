@@ -26,7 +26,7 @@ describe("DELETE /api/fonts/[fontName]", () => {
     vi.resetAllMocks();
     vi.mocked(headers).mockResolvedValue(new Headers() as never);
     vi.mocked(buildBackendAuthHeaders).mockReturnValue({
-      "x-supoclip-user-id": "user-1",
+      "x-gungleclips-user-id": "user-1",
     });
     process.env.BACKEND_INTERNAL_URL = "http://backend:8000";
   });
@@ -64,7 +64,7 @@ describe("DELETE /api/fonts/[fontName]", () => {
       "http://backend:8000/fonts/Brand%20Font",
       expect.objectContaining({
         method: "DELETE",
-        headers: { "x-supoclip-user-id": "user-1", "x-trace-id": expect.any(String) },
+        headers: { "x-gungleclips-user-id": "user-1", "x-trace-id": expect.any(String) },
       }),
     );
     expect(response.status).toBe(200);

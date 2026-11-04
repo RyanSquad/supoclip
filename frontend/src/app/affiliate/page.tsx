@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowRight, Gift, Link2, Percent, Search, Send } from "lucide-react";
+import { BrandSurface } from "@/components/marketing/brand-surface";
 
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
       url: `${siteUrl}/affiliate`,
-      siteName: "SupoClip",
+      siteName: "GungleClips",
       type: "website",
       images: [{ url: `${siteUrl}${VIDEO.poster}`, width: 1920, height: 1080 }],
       videos: [{ url: `${siteUrl}${VIDEO.src}`, width: 1920, height: 1080, type: "video/mp4" }],
@@ -65,7 +66,7 @@ export default async function AffiliatePage() {
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "SupoClip", item: siteUrl },
+          { "@type": "ListItem", position: 1, name: "GungleClips", item: siteUrl },
           { "@type": "ListItem", position: 2, name: t("badge"), item: `${siteUrl}/affiliate` },
         ],
       },
@@ -90,17 +91,17 @@ export default async function AffiliatePage() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <BrandSurface><main className="min-h-screen text-foreground">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <header className="border-b bg-background/95">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="SupoClip" width={24} height={24} className="rounded-lg dark:invert" />
-            <span className="text-lg font-bold tracking-tight">SupoClip</span>
+            <Image src="/logo.png" alt="GungleClips" width={24} height={24} />
+            <span className="text-lg font-bold tracking-tight">GungleClips</span>
           </Link>
           <nav className="flex items-center gap-2" aria-label={t("nav.label")}>
-            <Link href="/demo"><Button variant="ghost" size="sm">{t("nav.demo")}</Button></Link>
-            <Link href={APPLY_HREF}><Button size="sm">{t("nav.apply")}</Button></Link>
+            <Link href="/demo"><Button variant="ghost" size="sm" className="rounded-none text-[var(--gungle-charcoal)]">{t("nav.demo")}</Button></Link>
+            <Link href={APPLY_HREF}><Button size="sm" className="marketing-cta rounded-none px-4">{t("nav.apply")}</Button></Link>
           </nav>
         </div>
       </header>
@@ -115,7 +116,7 @@ export default async function AffiliatePage() {
             {t("hero.body")}
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href={APPLY_HREF}><Button size="lg">{t("hero.apply")} <ArrowRight className="h-4 w-4" /></Button></Link>
+            <Link href={APPLY_HREF}><Button size="lg" className="marketing-cta rounded-none">{t("hero.apply")} <ArrowRight className="h-4 w-4" /></Button></Link>
             <span className="text-sm text-muted-foreground">{t("hero.noMinimum")}</span>
           </div>
           <video
@@ -193,17 +194,17 @@ export default async function AffiliatePage() {
           </dl>
         </section>
 
-        <section className="mt-16 rounded-2xl border bg-foreground p-6 text-background md:p-8">
+        <section className="marketing-inverse mt-16 rounded-none p-6 md:p-8">
           <h2 className="text-2xl font-bold tracking-tight">{t("cta.title")}</h2>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-background/70">
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
             {t("cta.body")}
           </p>
           <div className="mt-6">
-            <Link href={APPLY_HREF}><Button variant="secondary">{t("hero.apply")} <ArrowRight className="h-4 w-4" /></Button></Link>
+            <Link href={APPLY_HREF}><Button className="marketing-cta rounded-none">{t("hero.apply")} <ArrowRight className="h-4 w-4" /></Button></Link>
           </div>
         </section>
       </div>
       <SiteFooter />
-    </main>
+    </main></BrandSurface>
   );
 }

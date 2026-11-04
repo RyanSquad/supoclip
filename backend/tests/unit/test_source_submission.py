@@ -27,9 +27,9 @@ PRIVATE = "PRIVATEKEY"
 def test_client_label_recognizes_ios_and_treats_everything_else_as_web():
     assert client_label(None) == "web"
     assert client_label("Mozilla/5.0") == "web"
-    assert client_label("supoclip-ios/not-a-version") == "web"
-    assert client_label("SupoClip-iOS/3.1.4 (iPhone; iOS 18.0)") == "supoclip-ios/3.1.4"
-    assert client_label("supoclip-ios/42") == "supoclip-ios/42"
+    assert client_label("gungleclips-ios/not-a-version") == "web"
+    assert client_label("GungleClips-iOS/3.1.4 (iPhone; iOS 18.0)") == "gungleclips-ios/3.1.4"
+    assert client_label("gungleclips-ios/42") == "gungleclips-ios/42"
 
 
 def test_sanitizer_keeps_youtube_identifiers_and_drops_the_rest():
@@ -199,7 +199,7 @@ async def test_rejected_submission_is_logged_and_persisted(monkeypatch, caplog):
     await record_source_submission(
         raw_url=raw,
         user_id="user-1",
-        user_agent="supoclip-ios/42 extra",
+        user_agent="gungleclips-ios/42 extra",
         outcome="rejected",
         status_code=422,
         detail="Only YouTube, Twitch VOD/clip, Kick VOD/clip, or uploaded video sources are supported",
@@ -210,7 +210,7 @@ async def test_rejected_submission_is_logged_and_persisted(monkeypatch, caplog):
     assert record.levelno == logging.WARNING
     assert record.source_outcome == "rejected"
     assert record.source_status == 422
-    assert record.source_client == "supoclip-ios/42"
+    assert record.source_client == "gungleclips-ios/42"
     assert record.source_type == "unsupported"
     assert record.source_domain == "tiktok.com"
     assert record.source_user_id == "user-1"
@@ -222,7 +222,7 @@ async def test_rejected_submission_is_logged_and_persisted(monkeypatch, caplog):
     assert session.committed is True
     assert session.params["domain"] == "tiktok.com"
     assert session.params["sanitized_url"] == payload["source_url"]
-    assert session.params["client"] == "supoclip-ios/42"
+    assert session.params["client"] == "gungleclips-ios/42"
     assert session.params["user_id"] == "user-1"
     assert SECRET not in session.params["sanitized_url"]
     assert SECRET not in session.params["reason"]
@@ -280,7 +280,7 @@ async def test_persist_failure_does_not_raise(monkeypatch, caplog):
     assert _submission_record(caplog).source_domain == "instagram.com"
 
 
-def _request(body: dict, user_agent: str = "supoclip-ios/42"):
+def _request(body: dict, user_agent: str = "gungleclips-ios/42"):
     return SimpleNamespace(
         json=AsyncMock(return_value=body),
         headers={"user-agent": user_agent},
@@ -308,7 +308,7 @@ async def test_create_task_logs_unsupported_source_rejection(monkeypatch, caplog
     record = _submission_record(caplog)
     assert record.source_outcome == "rejected"
     assert record.source_status == 422
-    assert record.source_client == "supoclip-ios/42"
+    assert record.source_client == "gungleclips-ios/42"
     assert record.source_domain == "tiktok.com"
     assert record.source_url == "https://www.tiktok.com/@creator/video/123"
     assert SECRET not in caplog.text
@@ -355,7 +355,7 @@ async def test_create_task_without_a_url_does_not_log_a_submission(monkeypatch, 
     assert not any(record.message.startswith("source_submission") for record in caplog.records)
 
 
-def _starlette_request(path: str, user_agent: str = "supoclip-ios/7") -> Request:
+def _starlette_request(path: str, user_agent: str = "gungleclips-ios/7") -> Request:
     return Request(
         {
             "type": "http",
@@ -391,7 +391,7 @@ async def test_task_validation_error_logs_sanitized_url_not_the_raw_input(monkey
     record = _submission_record(caplog)
     assert record.source_status == 422
     assert record.source_domain == "drive.google.com"
-    assert record.source_client == "supoclip-ios/7"
+    assert record.source_client == "gungleclips-ios/7"
     assert record.source_url == "https://drive.google.com/file/d/abc123/view"
     assert record.source_reason == "422: font_options: string_type"
     assert SECRET not in caplog.text

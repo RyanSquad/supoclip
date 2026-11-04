@@ -18,7 +18,7 @@ from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
-_IOS_CLIENT = re.compile(r"supoclip-ios/(\d{1,8}(?:\.\d{1,8}){0,4})", re.IGNORECASE)
+_IOS_CLIENT = re.compile(r"gungleclips-ios/(\d{1,8}(?:\.\d{1,8}){0,4})", re.IGNORECASE)
 _URL_IN_TEXT = re.compile(r"https?://\S+", re.IGNORECASE)
 _MAX_URL_LENGTH = 2000
 _MAX_REASON_LENGTH = 500
@@ -32,13 +32,13 @@ class SanitizedSource:
 
 
 def client_label(user_agent: str | None) -> str:
-    """Return ``web`` or the iOS client token (``supoclip-ios/N``)."""
+    """Return ``web`` or the iOS client token (``gungleclips-ios/N``)."""
     if not user_agent:
         return "web"
     match = _IOS_CLIENT.search(user_agent)
     if not match:
         return "web"
-    return f"supoclip-ios/{match.group(1)}"
+    return f"gungleclips-ios/{match.group(1)}"
 
 
 def is_task_create_request(method: str, path: str) -> bool:

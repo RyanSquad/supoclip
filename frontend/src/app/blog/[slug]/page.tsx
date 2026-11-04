@@ -111,7 +111,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     },
     publisher: {
       "@type": "Organization",
-      name: "SupoClip",
+      name: "GungleClips",
       logo: {
         "@type": "ImageObject",
         url: `${siteUrl}/logo.png`,
@@ -147,12 +147,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <header className="border-b bg-background/95">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="SupoClip" width={24} height={24} className="rounded-lg dark:invert" />
+            <Image src="/logo.png" alt="GungleClips" width={24} height={24} className="rounded-lg" />
             <span
               className="text-lg font-bold tracking-tight"
               style={{ fontFamily: "var(--font-syne), var(--font-geist-sans), system-ui" }}
             >
-              SupoClip
+              GungleClips
             </span>
           </Link>
           <div className="flex items-center gap-2">
@@ -284,7 +284,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <div className="my-8 overflow-hidden rounded-lg border">
               <div className="grid grid-cols-[0.85fr_1fr_1fr] bg-muted/50 text-sm font-semibold">
                 <div className="p-4">{t(`${key}.table.feature`)}</div>
-                <div className="border-l p-4">SupoClip</div>
+                <div className="border-l p-4">GungleClips</div>
                 <div className="border-l p-4">OpusClip</div>
               </div>
               {comparisonIcons.map((Icon, index) => (
@@ -338,7 +338,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <a href="https://github.com/FujiwaraChoki/supoclip" target="_blank" rel="noopener noreferrer">
+                  <a href="https://github.com/gungle-ai/gungleclips" target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" className="border-background/30 bg-transparent text-background hover:bg-background hover:text-foreground">
                       <Github className="h-4 w-4" />
                       GitHub

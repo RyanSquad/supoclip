@@ -16,7 +16,7 @@ async def test_worker_health_requires_live_heartbeat(heartbeat, status):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/health/worker")
     assert response.status_code == status
-    pool.get.assert_awaited_once_with("supoclip_tasks:health-check")
+    pool.get.assert_awaited_once_with("gungleclips_tasks:health-check")
 
 
 async def test_worker_health_does_not_leak_redis_connection_error():

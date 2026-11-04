@@ -1,4 +1,4 @@
-# Ships SupoClip container logs (and the host nginx's SupoClip access/error
+# Ships GungleClips container logs (and the host nginx's GungleClips access/error
 # logs) to Axiom. Started by docker-compose's "axiom" profile; see
 # docs/observability.md.
 
@@ -6,21 +6,21 @@ sources:
   containers:
     type: docker_logs
     # Prefix match: only this stack's containers, not other projects on the host.
-    include_containers: ["supoclip-"]
-    exclude_containers: ["supoclip-vector"]
+    include_containers: ["gungleclips-"]
+    exclude_containers: ["gungleclips-vector"]
 
   nginx:
     type: file
     include:
-      - /var/log/nginx/supoclip.access.log
-      - /var/log/nginx/supoclip.error.log
+      - /var/log/nginx/gungleclips.access.log
+      - /var/log/nginx/gungleclips.error.log
 
 transforms:
   containers_parsed:
     type: remap
     inputs: [containers]
     source: |
-      .service = replace(string!(.container_name), "supoclip-", "")
+      .service = replace(string!(.container_name), "gungleclips-", "")
       del(.label)
       del(.container_id)
       del(.container_created_at)
@@ -56,5 +56,5 @@ sinks:
   axiom:
     type: axiom
     inputs: [containers_filtered, nginx_parsed]
-    dataset: "${AXIOM_DATASET:-supoclip-prod}"
+    dataset: "${AXIOM_DATASET:-gungleclips-prod}"
     token: "${AXIOM_TOKEN}"

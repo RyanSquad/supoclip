@@ -29,7 +29,7 @@ preflight. An actor result found there is stored with the task and reused by the
 so each actor runs at most once per task, and a chain that has failed completely is not
 rerun for the same job.
 
-This guide explains the important environment variables used by SupoClip and how they affect behavior.
+This guide explains the important environment variables used by GungleClips and how they affect behavior.
 
 Most settings are sourced from `.env.example`, `docker-compose.yml`, and the backend configuration code in `backend/src/config.py`.
 
@@ -81,16 +81,16 @@ The backend can infer a default LLM from whichever API key is present, but setti
 | `NEXT_PUBLIC_LANDING_ONLY_MODE` | `false` | Restricts the UI to the landing page only |
 | `TEMP_DIR` | `/app/uploads` in Docker | Temporary backend working directory for uploads and processing |
 | `MEDIA_STORAGE` | `local` | `s3` stores durable media in a private bucket; see [Media storage](media-storage.md) for configuration, retention and migration |
-| `CORS_ORIGINS` | `http://localhost:3107,http://sp.localhost:3107,http://supoclip.localhost:3107` | Allowed browser origins for backend requests, including direct browser video uploads |
+| `CORS_ORIGINS` | `http://localhost:3107,http://sp.localhost:3107,http://gungleclips.localhost:3107` | Allowed browser origins for backend requests, including direct browser video uploads |
 
 ## Analytics Settings
 
-SupoClip can send pageviews and custom product events to DataFast from the `frontend` app.
+GungleClips can send pageviews and custom product events to DataFast from the `frontend` app.
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `NEXT_PUBLIC_DATAFAST_WEBSITE_ID` | unset | Public DataFast website ID used by the tracking script |
-| `NEXT_PUBLIC_DATAFAST_DOMAIN` | unset | Root domain tracked by DataFast, for example `supoclip.com` |
+| `NEXT_PUBLIC_DATAFAST_DOMAIN` | unset | Root domain tracked by DataFast, for example `clips.gungle.ai` |
 | `NEXT_PUBLIC_DATAFAST_ALLOW_LOCALHOST` | `false` | Enables local tracking on `localhost` when explicitly set to `true` |
 
 ### DataFast behavior
@@ -165,9 +165,9 @@ Fonts and transitions are configured by mounted files rather than environment va
 | `REDIS_HOST` | `redis` in Docker, `localhost` in code | Redis hostname |
 | `REDIS_PORT` | `6379` | Redis port |
 | `DATABASE_URL` | injected by Docker | PostgreSQL connection string |
-| `POSTGRES_DB` | `supoclip` | PostgreSQL database name |
-| `POSTGRES_USER` | `supoclip` | PostgreSQL username |
-| `POSTGRES_PASSWORD` | `supoclip_password` | PostgreSQL password |
+| `POSTGRES_DB` | `gungleclips` | PostgreSQL database name |
+| `POSTGRES_USER` | `gungleclips` | PostgreSQL username |
+| `POSTGRES_PASSWORD` | `gungleclips_password` | PostgreSQL password |
 
 ## Self-Host and Monetization Settings
 
@@ -225,7 +225,7 @@ Required when `SELF_HOST=false` and you want subscription management:
 | `AWS_REGION` | AWS region for Amazon SES, default `us-east-1` |
 | `AWS_ACCESS_KEY_ID` | AWS access key ID used to send hosted billing lifecycle emails |
 | `AWS_SECRET_ACCESS_KEY` | AWS secret access key used to send hosted billing lifecycle emails |
-| `SES_FROM_EMAIL` | Verified sender address for subscription emails, default `SupoClip <onboarding@example.com>` |
+| `SES_FROM_EMAIL` | Verified sender address for subscription emails, default `GungleClips <onboarding@example.com>` |
 
 #### Scheduled cancellation emails
 
@@ -235,8 +235,8 @@ The frontend Stripe webhook at `/api/billing/webhook` handles
 authenticated backend `/billing/subscription-email` endpoint with
 `{"event":"cancellation_scheduled"}`. The backend sends the customer an immediate
 email with their access end date, a request for feedback, and an invitation to
-reply to `support@supoclip.com` for 30% off for three months. The sender uses
-`SES_FROM_EMAIL`; the signature is Team SupoClip.
+reply to `support@gungle.ai` for 30% off for three months. The sender uses
+`SES_FROM_EMAIL`; the signature is Team GungleClips.
 
 The discount message uses the existing [product-email preferences and unsubscribe
 links](product-update-emails.md). Opted-out customers receive a cancellation
@@ -272,7 +272,7 @@ must check previous use before applying it.
 Social publishing is optional. When no provider is configured the Publish
 button and the Social Accounts page explain what is missing instead of failing.
 
-SupoClip uses one OAuth app per platform, registered by whoever operates the
+GungleClips uses one OAuth app per platform, registered by whoever operates the
 server. Users connect their own YouTube, TikTok and Instagram accounts through
 that app from **Settings → Social Accounts**; tokens are stored encrypted with
 `APP_SETTINGS_ENCRYPTION_KEY` (falling back to `BACKEND_AUTH_SECRET`).
@@ -347,7 +347,7 @@ Before enabling each provider for users:
 - Connect a test account, disconnect it, and reconnect it. Confirm token refresh
   works and revoked credentials prompt a reconnect.
 - Publish one clip using a visibility level allowed for the test account. Check
-  the result on the platform as well as in SupoClip.
+  the result on the platform as well as in GungleClips.
 - Schedule a clip, confirm it publishes once, and cancel another scheduled clip.
 - For TikTok, verify asynchronous processing and private completion with no
   public post ID. Status-check failures should keep checking the existing upload;
@@ -381,13 +381,13 @@ With a proxy set, a job downloads modest audio first, picks clips, then fetches 
 
 ## Apify YouTube Downloader
 
-SupoClip uses the actor explicitly configured in the private environment as the primary YouTube download path. Metadata preflight and fallback downloads rely on the local `yt-dlp` stack over a direct connection. When `YOUTUBE_PROXY_URL` is set, the proxy attempt runs before Apify.
+GungleClips uses the actor explicitly configured in the private environment as the primary YouTube download path. Metadata preflight and fallback downloads rely on the local `yt-dlp` stack over a direct connection. When `YOUTUBE_PROXY_URL` is set, the proxy attempt runs before Apify.
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `APIFY_API_TOKEN` | empty | Enables the primary Apify download flow |
 | `APIFY_YOUTUBE_DEFAULT_QUALITY` | `1080` | Requested Apify download resolution (`360`, `480`, `720`, or `1080`) |
-| `APIFY_RUN_TIMEOUT_SECONDS` | `900` | Maximum Apify actor run time before SupoClip gives up and falls back |
+| `APIFY_RUN_TIMEOUT_SECONDS` | `900` | Maximum Apify actor run time before GungleClips gives up and falls back |
 
 ## RapidAPI YouTube Downloader
 
@@ -504,7 +504,7 @@ NEXT_PUBLIC_SCALE_PLAN_MINUTE_LIMIT=1500
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
 AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
-SES_FROM_EMAIL="SupoClip <onboarding@example.com>"
+SES_FROM_EMAIL="GungleClips <onboarding@example.com>"
 ```
 
 ## Related Reading

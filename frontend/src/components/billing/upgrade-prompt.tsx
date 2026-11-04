@@ -540,7 +540,7 @@ function PlanShowcase({
 export function ComingSoonTag({ className }: { className?: string }) {
   const text = useBillingPlanText();
   return (
-    <span className={cn("ml-1 inline-block rounded-full border px-1.5 py-px align-middle text-[10px] font-medium leading-4", className)}>
+    <span className={cn("ml-1 inline-block rounded-none border border-current/40 px-1.5 py-px align-middle text-[10px] font-medium leading-4 text-muted-foreground", className)}>
       {text.t("comingSoon")}
     </span>
   );

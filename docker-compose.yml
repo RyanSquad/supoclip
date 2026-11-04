@@ -27,7 +27,7 @@ services:
         - POSTHOG_PERSONAL_API_KEY=${POSTHOG_PERSONAL_API_KEY:-}
         - POSTHOG_PROJECT_ID=${POSTHOG_PROJECT_ID:-}
         - POSTHOG_RELEASE_VERSION=${POSTHOG_RELEASE_VERSION:-}
-    container_name: supoclip-frontend
+    container_name: gungleclips-frontend
     ports:
       # Keep the legacy port for deployments whose proxy already uses 3001.
       # .env.example selects 3107 for new self-hosted installations.
@@ -48,8 +48,8 @@ services:
       - DISABLE_SIGN_UP=${DISABLE_SIGN_UP:-false}
       - BACKEND_AUTH_SECRET=${BACKEND_AUTH_SECRET}
       - APP_SETTINGS_ENCRYPTION_KEY=${APP_SETTINGS_ENCRYPTION_KEY}
-      - DATABASE_URL=postgresql://supoclip:supoclip_password@postgres:5432/supoclip
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-supoclip_dev_secret_change_in_production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-gungleclips}:${POSTGRES_PASSWORD:-gungleclips_password}@postgres:5432/${POSTGRES_DB:-gungleclips}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-gungleclips_dev_secret_change_in_production}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3107}
       - BETTER_AUTH_TRUSTED_ORIGINS=${BETTER_AUTH_TRUSTED_ORIGINS:-}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
@@ -83,7 +83,7 @@ services:
       - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - "SES_FROM_EMAIL=${SES_FROM_EMAIL:-SupoClip <onboarding@example.com>}"
+      - "SES_FROM_EMAIL=${SES_FROM_EMAIL:-GungleClips <onboarding@example.com>}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -104,7 +104,7 @@ services:
       dockerfile: Dockerfile
       args:
         BACKEND_CPU_ONLY: ${BACKEND_CPU_ONLY:-false}
-    container_name: supoclip-backend
+    container_name: gungleclips-backend
     # linux/amd64 by default, including on Apple Silicon (emulated). Set
     # BACKEND_PLATFORM=linux/arm64 with BACKEND_CPU_ONLY=true for a native
     # arm64 image. CUDA wheels are amd64-only.
@@ -121,10 +121,10 @@ services:
     environment:
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
-      - SUPOCLIP_SERVICE=backend
+      - GUNGLECLIPS_SERVICE=backend
       - POSTHOG_PROJECT_TOKEN=${POSTHOG_PROJECT_TOKEN:-}
       - POSTHOG_HOST=${POSTHOG_HOST:-https://eu.i.posthog.com}
-      - DATABASE_URL=postgresql+asyncpg://supoclip:supoclip_password@postgres:5432/supoclip
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-gungleclips}:${POSTGRES_PASSWORD:-gungleclips_password}@postgres:5432/${POSTGRES_DB:-gungleclips}
       - TEMP_DIR=/app/uploads
       - MEDIA_STORAGE=${MEDIA_STORAGE:-local}
       - MEDIA_S3_BUCKET=${MEDIA_S3_BUCKET:-}
@@ -218,13 +218,13 @@ services:
       - BACKEND_AUTH_SECRET=${BACKEND_AUTH_SECRET}
       - APP_SETTINGS_ENCRYPTION_KEY=${APP_SETTINGS_ENCRYPTION_KEY}
       - AUTH_SIGNATURE_TTL_SECONDS=${AUTH_SIGNATURE_TTL_SECONDS:-300}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3107,http://127.0.0.1:3107,http://sp.localhost:3107,http://supoclip.localhost:3107}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3107,http://127.0.0.1:3107,http://sp.localhost:3107,http://gungleclips.localhost:3107}
       - PRO_PLAN_MINUTE_LIMIT=${PRO_PLAN_MINUTE_LIMIT:-600}
       - SCALE_PLAN_MINUTE_LIMIT=${SCALE_PLAN_MINUTE_LIMIT:-1500}
       - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - "SES_FROM_EMAIL=${SES_FROM_EMAIL:-SupoClip <onboarding@example.com>}"
+      - "SES_FROM_EMAIL=${SES_FROM_EMAIL:-GungleClips <onboarding@example.com>}"
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3107}
       - DISCORD_FEEDBACK_WEBHOOK_URL=${DISCORD_FEEDBACK_WEBHOOK_URL}
       # Social publishing (OAuth apps; users connect their own accounts)
@@ -262,20 +262,20 @@ services:
     build:
       context: ./mcp
       dockerfile: Dockerfile
-    container_name: supoclip-mcp
+    container_name: gungleclips-mcp
     ports:
-      - "127.0.0.1:${SUPOCLIP_MCP_PORT:-9100}:9100"
+      - "127.0.0.1:${GUNGLECLIPS_MCP_PORT:-9100}:9100"
     volumes:
-      - mcp_downloads:/app/supoclip-downloads
+      - mcp_downloads:/app/gungleclips-downloads
     environment:
-      - SUPOCLIP_API_URL=${SUPOCLIP_API_URL:-http://backend:8000}
-      - SUPOCLIP_DOWNLOAD_DIR=/app/supoclip-downloads
-      - SUPOCLIP_TIMEOUT=${SUPOCLIP_TIMEOUT:-60}
-      - SUPOCLIP_MCP_TRANSPORT=${SUPOCLIP_MCP_TRANSPORT:-sse}
-      - SUPOCLIP_MCP_HOST=0.0.0.0
-      - SUPOCLIP_MCP_PORT=9100
-      - SUPOCLIP_MCP_PUBLIC_URL=${SUPOCLIP_MCP_PUBLIC_URL:-https://mcp.supoclip.com}
-      - SUPOCLIP_MCP_REQUIRE_BEARER_AUTH=${SUPOCLIP_MCP_REQUIRE_BEARER_AUTH:-true}
+      - GUNGLECLIPS_API_URL=${GUNGLECLIPS_API_URL:-http://backend:8000}
+      - GUNGLECLIPS_DOWNLOAD_DIR=/app/gungleclips-downloads
+      - GUNGLECLIPS_TIMEOUT=${GUNGLECLIPS_TIMEOUT:-60}
+      - GUNGLECLIPS_MCP_TRANSPORT=${GUNGLECLIPS_MCP_TRANSPORT:-sse}
+      - GUNGLECLIPS_MCP_HOST=0.0.0.0
+      - GUNGLECLIPS_MCP_PORT=9100
+      - GUNGLECLIPS_MCP_PUBLIC_URL=${GUNGLECLIPS_MCP_PUBLIC_URL:-https://mcp.clips.gungle.ai}
+      - GUNGLECLIPS_MCP_REQUIRE_BEARER_AUTH=${GUNGLECLIPS_MCP_REQUIRE_BEARER_AUTH:-true}
     restart: unless-stopped
     depends_on:
       backend:
@@ -294,7 +294,7 @@ services:
       dockerfile: Dockerfile
       args:
         BACKEND_CPU_ONLY: ${BACKEND_CPU_ONLY:-false}
-    container_name: supoclip-worker
+    container_name: gungleclips-worker
     # Same platform override as the backend service.
     platform: "${BACKEND_PLATFORM:-linux/amd64}"
     command: [".venv/bin/arq", "src.workers.tasks.WorkerSettings"]
@@ -307,10 +307,10 @@ services:
     environment: &worker-environment
       - PYTHONPATH=/app
       - PYTHONUNBUFFERED=1
-      - SUPOCLIP_SERVICE=worker
+      - GUNGLECLIPS_SERVICE=worker
       - POSTHOG_PROJECT_TOKEN=${POSTHOG_PROJECT_TOKEN:-}
       - POSTHOG_HOST=${POSTHOG_HOST:-https://eu.i.posthog.com}
-      - DATABASE_URL=postgresql+asyncpg://supoclip:supoclip_password@postgres:5432/supoclip
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-gungleclips}:${POSTGRES_PASSWORD:-gungleclips_password}@postgres:5432/${POSTGRES_DB:-gungleclips}
       - TEMP_DIR=/app/uploads
       - MEDIA_STORAGE=${MEDIA_STORAGE:-local}
       - MEDIA_S3_BUCKET=${MEDIA_S3_BUCKET:-}
@@ -404,13 +404,13 @@ services:
       - BACKEND_AUTH_SECRET=${BACKEND_AUTH_SECRET}
       - APP_SETTINGS_ENCRYPTION_KEY=${APP_SETTINGS_ENCRYPTION_KEY}
       - AUTH_SIGNATURE_TTL_SECONDS=${AUTH_SIGNATURE_TTL_SECONDS:-300}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3107,http://127.0.0.1:3107,http://sp.localhost:3107,http://supoclip.localhost:3107}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3107,http://127.0.0.1:3107,http://sp.localhost:3107,http://gungleclips.localhost:3107}
       - PRO_PLAN_MINUTE_LIMIT=${PRO_PLAN_MINUTE_LIMIT:-600}
       - SCALE_PLAN_MINUTE_LIMIT=${SCALE_PLAN_MINUTE_LIMIT:-1500}
       - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - "SES_FROM_EMAIL=${SES_FROM_EMAIL:-SupoClip <onboarding@example.com>}"
+      - "SES_FROM_EMAIL=${SES_FROM_EMAIL:-GungleClips <onboarding@example.com>}"
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3107}
       # Social publishing (OAuth apps; users connect their own accounts)
       - YOUTUBE_OAUTH_CLIENT_ID=${YOUTUBE_OAUTH_CLIENT_ID}
@@ -454,7 +454,7 @@ services:
       dockerfile: Dockerfile
       args:
         BACKEND_CPU_ONLY: ${BACKEND_CPU_ONLY:-false}
-    container_name: supoclip-ai-worker
+    container_name: gungleclips-ai-worker
     platform: "${BACKEND_PLATFORM:-linux/amd64}"
     command: [".venv/bin/arq", "src.workers.ai_worker.AIWorkerSettings"]
     volumes:
@@ -479,7 +479,7 @@ services:
   # compose network; the provider has no authentication of its own.
   bgutil:
     image: brainicism/bgutil-ytdlp-pot-provider:2.0.2
-    container_name: supoclip-bgutil
+    container_name: gungleclips-bgutil
     profiles: ["youtube-proxy"]
     init: true
     expose:
@@ -489,7 +489,7 @@ services:
   # Ships container logs to Axiom. Opt-in: COMPOSE_PROFILES=axiom + AXIOM_TOKEN.
   vector:
     image: timberio/vector:0.60.0-alpine
-    container_name: supoclip-vector
+    container_name: gungleclips-vector
     profiles: ["axiom"]
     volumes:
       - ./observability/vector.yaml:/etc/vector/vector.yaml:ro
@@ -501,13 +501,13 @@ services:
       # it the literal "${AXIOM_TOKEN}" is sent and Axiom answers Unauthorized.
       - VECTOR_DANGEROUSLY_ALLOW_ENV_VAR_INTERPOLATION=true
       - AXIOM_TOKEN=${AXIOM_TOKEN:-}
-      - AXIOM_DATASET=${AXIOM_DATASET:-supoclip-prod}
+      - AXIOM_DATASET=${AXIOM_DATASET:-gungleclips-prod}
     restart: unless-stopped
 
   # Redis for caching and job queues (useful for video processing)
   redis:
     image: redis:7-alpine
-    container_name: supoclip-redis
+    container_name: gungleclips-redis
     ports:
       - "127.0.0.1:6379:6379"
     environment:
@@ -534,17 +534,17 @@ services:
   # PostgreSQL database for storing video metadata, user data, etc.
   postgres:
     image: postgres:15-alpine
-    container_name: supoclip-postgres
+    container_name: gungleclips-postgres
     environment:
-      POSTGRES_DB: supoclip
-      POSTGRES_USER: supoclip
-      POSTGRES_PASSWORD: supoclip_password
+      POSTGRES_DB: ${POSTGRES_DB:-gungleclips}
+      POSTGRES_USER: ${POSTGRES_USER:-gungleclips}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gungleclips_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U supoclip -d supoclip"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -565,4 +565,4 @@ volumes:
 
 networks:
   default:
-    name: supoclip-network
+    name: gungleclips-network

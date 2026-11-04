@@ -382,7 +382,7 @@ async def test_instruction_is_queued_on_the_ai_worker(client):
     request = json.loads(pool.data[ai.request_key(job_id)])
     assert request["instruction"] == "remove the ums" and request["playhead"] == 4.2
     assert enqueue.await_args.args == ("ai_edit_job", job_id)
-    assert enqueue.await_args.kwargs == {"_queue_name": "supoclip_ai"}
+    assert enqueue.await_args.kwargs == {"_queue_name": "gungleclips_ai"}
 
     # Polling: queued until the worker publishes, then the result.
     status = await http.get(f"/tasks/task/clips/clip/editor/ai/{job_id}")

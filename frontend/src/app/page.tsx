@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description: t("metadata.openGraphDescription"),
       url: siteUrl,
-      siteName: "SupoClip",
+      siteName: "GungleClips",
       type: "website",
     },
     twitter: {
@@ -47,16 +47,19 @@ export default async function HomePage() {
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "SupoClip",
+      name: "GungleClips",
       legalName: COMPANY_NAME,
       url: siteUrl,
       logo: `${siteUrl}/logo.png`,
-      sameAs: ["https://github.com/FujiwaraChoki/supoclip", APP_STORE_URL],
+      sameAs: [
+        "https://github.com/gungle-ai/gungleclips",
+        ...(APP_STORE_URL ? [APP_STORE_URL] : []),
+      ],
     },
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      name: "SupoClip",
+      name: "GungleClips",
       applicationCategory: "MultimediaApplication",
       operatingSystem: "Web, Docker",
       url: siteUrl,
@@ -75,25 +78,29 @@ export default async function HomePage() {
         category: t("metadata.structured.offerCategory"),
       },
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "MobileApplication",
-      name: "SupoClip",
-      applicationCategory: "MultimediaApplication",
-      operatingSystem: "iOS",
-      url: APP_STORE_URL,
-      installUrl: APP_STORE_URL,
-      description: t("metadata.structured.ios"),
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-      },
-    },
+    ...(APP_STORE_URL
+      ? [
+          {
+            "@context": "https://schema.org",
+            "@type": "MobileApplication",
+            name: "GungleClips",
+            applicationCategory: "MultimediaApplication",
+            operatingSystem: "iOS",
+            url: APP_STORE_URL,
+            installUrl: APP_STORE_URL,
+            description: t("metadata.structured.ios"),
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+          },
+        ]
+      : []),
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "SupoClip",
+      name: "GungleClips",
       url: siteUrl,
       description: t("metadata.structured.website"),
     },

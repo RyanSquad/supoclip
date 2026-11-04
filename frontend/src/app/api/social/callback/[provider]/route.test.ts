@@ -113,7 +113,7 @@ describe("/api/social/callback/[provider]", () => {
     const { request, context } = callbackRequest("tiktok", { code: "abc", state: "m.state-1" });
     const response = await GET(request, context);
     const location = new URL(response.headers.get("location")!);
-    expect(`${location.protocol}//${location.host}`).toBe("supoclip://social-callback");
+    expect(`${location.protocol}//${location.host}`).toBe("gungleclips://social-callback");
     expect(location.searchParams.get("provider")).toBe("tiktok");
     expect(location.searchParams.get("code")).toBe("abc");
     expect(location.searchParams.get("state")).toBe("m.state-1");
@@ -125,7 +125,7 @@ describe("/api/social/callback/[provider]", () => {
     const { request, context } = callbackRequest("youtube", { error: "access_denied", state: "m.state-2" });
     const response = await GET(request, context);
     const location = new URL(response.headers.get("location")!);
-    expect(location.protocol).toBe("supoclip:");
+    expect(location.protocol).toBe("gungleclips:");
     expect(location.searchParams.get("error")).toBe("access_denied");
     expect(location.searchParams.get("code")).toBeNull();
   });

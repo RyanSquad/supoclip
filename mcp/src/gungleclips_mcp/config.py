@@ -1,5 +1,5 @@
 """
-Configuration for the SupoClip MCP server.
+Configuration for the GungleClips MCP server.
 
 All settings come from environment variables so the same server binary works
 against the official hosted instance (the default) or any self-hosted backend.
@@ -11,9 +11,9 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-# The official hosted SupoClip API. Override with SUPOCLIP_API_URL to point at
+# The official hosted GungleClips API. Override with GUNGLECLIPS_API_URL to point at
 # a self-hosted backend (e.g. http://localhost:8000).
-DEFAULT_API_URL = "https://api.supoclip.com"
+DEFAULT_API_URL = "https://api.clips.gungle.ai"
 
 
 def _clean(value: Optional[str]) -> Optional[str]:
@@ -58,24 +58,24 @@ class Settings:
 
 def load_settings() -> Settings:
     """Build :class:`Settings` from the current environment."""
-    api_url = (_clean(os.getenv("SUPOCLIP_API_URL")) or DEFAULT_API_URL).rstrip("/")
-    download_dir = _clean(os.getenv("SUPOCLIP_DOWNLOAD_DIR")) or os.path.join(
-        os.getcwd(), "supoclip-downloads"
+    api_url = (_clean(os.getenv("GUNGLECLIPS_API_URL")) or DEFAULT_API_URL).rstrip("/")
+    download_dir = _clean(os.getenv("GUNGLECLIPS_DOWNLOAD_DIR")) or os.path.join(
+        os.getcwd(), "gungleclips-downloads"
     )
 
-    raw_timeout = _clean(os.getenv("SUPOCLIP_TIMEOUT"))
+    raw_timeout = _clean(os.getenv("GUNGLECLIPS_TIMEOUT"))
     try:
         timeout = float(raw_timeout) if raw_timeout else 60.0
     except ValueError:
         timeout = 60.0
 
-    raw_port = _clean(os.getenv("SUPOCLIP_MCP_PORT"))
+    raw_port = _clean(os.getenv("GUNGLECLIPS_MCP_PORT"))
     try:
         mcp_port = int(raw_port) if raw_port else 9100
     except ValueError:
         mcp_port = 9100
 
-    transport = (_clean(os.getenv("SUPOCLIP_MCP_TRANSPORT")) or "stdio").lower()
+    transport = (_clean(os.getenv("GUNGLECLIPS_MCP_TRANSPORT")) or "stdio").lower()
     if transport == "http":
         transport = "streamable-http"
     if transport not in {"stdio", "sse", "streamable-http"}:
@@ -83,18 +83,18 @@ def load_settings() -> Settings:
 
     return Settings(
         api_url=api_url,
-        api_key=_clean(os.getenv("SUPOCLIP_API_KEY")),
-        user_id=_clean(os.getenv("SUPOCLIP_USER_ID")),
-        auth_secret=_clean(os.getenv("SUPOCLIP_AUTH_SECRET")),
+        api_key=_clean(os.getenv("GUNGLECLIPS_API_KEY")),
+        user_id=_clean(os.getenv("GUNGLECLIPS_USER_ID")),
+        auth_secret=_clean(os.getenv("GUNGLECLIPS_AUTH_SECRET")),
         download_dir=download_dir,
         timeout=timeout,
         mcp_transport=transport,
-        mcp_host=_clean(os.getenv("SUPOCLIP_MCP_HOST")) or "127.0.0.1",
+        mcp_host=_clean(os.getenv("GUNGLECLIPS_MCP_HOST")) or "127.0.0.1",
         mcp_port=mcp_port,
-        mcp_mount_path=_clean(os.getenv("SUPOCLIP_MCP_MOUNT_PATH")) or "/",
-        mcp_public_url=_clean(os.getenv("SUPOCLIP_MCP_PUBLIC_URL")),
+        mcp_mount_path=_clean(os.getenv("GUNGLECLIPS_MCP_MOUNT_PATH")) or "/",
+        mcp_public_url=_clean(os.getenv("GUNGLECLIPS_MCP_PUBLIC_URL")),
         mcp_require_bearer_auth=(
-            (_clean(os.getenv("SUPOCLIP_MCP_REQUIRE_BEARER_AUTH")) or "").lower()
+            (_clean(os.getenv("GUNGLECLIPS_MCP_REQUIRE_BEARER_AUTH")) or "").lower()
             in {"1", "true", "yes", "on"}
         ),
     )

@@ -1,6 +1,6 @@
 # Launch Kit
 
-Everything needed to announce SupoClip and measure whether each channel produces
+Everything needed to announce GungleClips and measure whether each channel produces
 activated users (people who export a clip), not just visits.
 
 - [Pages to link](#pages-to-link)
@@ -15,23 +15,23 @@ activated users (people who export a clip), not just visits.
 
 | Page | URL | Use it for |
 |------|-----|------------|
-| Home | `https://www.supoclip.com/` | Product Hunt, general announcements |
-| Demo | `https://www.supoclip.com/demo` | Social posts: real output, with timestamps back to the source |
-| Self-hosting guide | `https://www.supoclip.com/blog/self-host-supoclip-docker` | r/selfhosted, developer communities |
-| SupoClip vs OpusClip | `https://www.supoclip.com/blog/supoclip-vs-opusclip` | "OpusClip alternative" threads and questions |
-| Open-source clipper | `https://www.supoclip.com/open-source-video-clipper` | Open-source communities |
-| GitHub | `https://github.com/FujiwaraChoki/supoclip` | Hacker News, developer audiences |
+| Home | `https://clips.gungle.ai/` | Product Hunt, general announcements |
+| Demo | `https://clips.gungle.ai/demo` | Social posts: real output, with timestamps back to the source |
+| Self-hosting guide | `https://clips.gungle.ai/blog/self-host-supoclip-docker` | r/selfhosted, developer communities |
+| GungleClips vs OpusClip | `https://clips.gungle.ai/blog/supoclip-vs-opusclip` | "OpusClip alternative" threads and questions |
+| Open-source clipper | `https://clips.gungle.ai/open-source-video-clipper` | Open-source communities |
+| GitHub | `https://github.com/gungle-ai/gungleclips` | Hacker News, developer audiences |
 
 **Visual assets in the repo**
 
 - `assets/banner.jpg`: README cover / social header
-- `frontend/public/blog/supoclip-editor.webp`: real editor screenshot (sample test footage)
+- `frontend/public/blog/gungleclips-editor.webp`: real editor screenshot (sample test footage)
 - `frontend/public/blog/supoclip-open-source-clipping.webp`: illustration (AI-generated, label it as such)
 - `frontend/public/clips/demo-{1,2}.mp4` + `.jpg`: demo clip previews
 
 > **Rights note:** the demo clips come from a third-party interview
 > ([source](https://www.youtube.com/watch?v=Vv3CEAS_w34)). They're shown on
-> supoclip.com with attribution and links to the source. **Don't upload them as
+> clips.gungle.ai with attribution and links to the source. **Don't upload them as
 > native posts to TikTok, Reels, Shorts, or X.** For native video, record the
 > demo below using footage we own.
 
@@ -50,14 +50,14 @@ Use these claims freely. Each one is backed by the code or the site:
 | Face-aware 9:16 reframing, word-synced captions, hook titles | `backend/src/media/` |
 | Export presets for TikTok, Reels, and Shorts | `backend/src/clip_editor.py` |
 | REST API with per-user keys, plus an MCP server | `docs/api-reference.md`, `mcp/README.md` |
-| Hosted plans: Pro $9.99/mo (10 hours of video, 720p), Creator $24.99/mo (25 hours, 1080p); yearly is 2 months free | Pricing section on supoclip.com |
+| Hosted plans: Pro $9.99/mo (10 hours of video, 720p), Creator $24.99/mo (25 hours, 1080p); yearly is 2 months free | Pricing section on clips.gungle.ai |
 
 **Don't say:**
 
-- "Free" without qualification. Hosted SupoClip has **no free plan**. Say "free to self-host."
+- "Free" without qualification. Hosted GungleClips has **no free plan**. Say "free to self-host."
 - Any speed, accuracy, or quality number ("10x faster", "95% accurate", "better clips than OpusClip"). We haven't run a benchmark that supports one.
 - That virality scores predict views. They rank candidates for review.
-- OpusClip prices or credit amounts. They change; link to the [comparison](https://www.supoclip.com/blog/supoclip-vs-opusclip) instead.
+- OpusClip prices or credit amounts. They change; link to the [comparison](https://clips.gungle.ai/blog/supoclip-vs-opusclip) instead.
 - "Fully offline." Downloading YouTube links needs internet access, and optional B-roll uses Pexels.
 
 ## Campaign links
@@ -67,7 +67,7 @@ attributed to `news.ycombinator.com` without tags. Add UTM tags where referrers
 get stripped (email, DMs, apps, QR codes) or where you want to compare
 individual posts within one platform.
 
-**Convention:** all lowercase, underscores, no spaces. SupoClip lowercases
+**Convention:** all lowercase, underscores, no spaces. GungleClips lowercases
 values on capture anyway, so `Reddit` and `reddit` are counted together.
 
 | Parameter | Meaning | Values |
@@ -81,17 +81,17 @@ values on capture anyway, so `Reddit` and `reddit` are counted together.
 **Ready-made links**
 
 ```text
-Product Hunt   https://www.supoclip.com/?utm_source=producthunt&utm_medium=launch&utm_campaign=launch_2026_10
-r/selfhosted   https://www.supoclip.com/blog/self-host-supoclip-docker?utm_source=reddit&utm_medium=community&utm_campaign=launch_2026_10&utm_content=r_selfhosted
-r/opensource   https://www.supoclip.com/open-source-video-clipper?utm_source=reddit&utm_medium=community&utm_campaign=launch_2026_10&utm_content=r_opensource
-X thread       https://www.supoclip.com/demo?utm_source=x&utm_medium=social&utm_campaign=launch_2026_10&utm_content=thread_1
-LinkedIn       https://www.supoclip.com/demo?utm_source=linkedin&utm_medium=social&utm_campaign=launch_2026_10
-Newsletter     https://www.supoclip.com/?utm_source=newsletter&utm_medium=email&utm_campaign=launch_2026_10
-YouTube desc.  https://www.supoclip.com/demo?utm_source=youtube&utm_medium=video&utm_campaign=launch_2026_10
-OpusClip Q&A   https://www.supoclip.com/blog/supoclip-vs-opusclip?utm_source=reddit&utm_medium=community&utm_campaign=launch_2026_10&utm_content=opusclip_thread
+Product Hunt   https://clips.gungle.ai/?utm_source=producthunt&utm_medium=launch&utm_campaign=launch_2026_10
+r/selfhosted   https://clips.gungle.ai/blog/self-host-supoclip-docker?utm_source=reddit&utm_medium=community&utm_campaign=launch_2026_10&utm_content=r_selfhosted
+r/opensource   https://clips.gungle.ai/open-source-video-clipper?utm_source=reddit&utm_medium=community&utm_campaign=launch_2026_10&utm_content=r_opensource
+X thread       https://clips.gungle.ai/demo?utm_source=x&utm_medium=social&utm_campaign=launch_2026_10&utm_content=thread_1
+LinkedIn       https://clips.gungle.ai/demo?utm_source=linkedin&utm_medium=social&utm_campaign=launch_2026_10
+Newsletter     https://clips.gungle.ai/?utm_source=newsletter&utm_medium=email&utm_campaign=launch_2026_10
+YouTube desc.  https://clips.gungle.ai/demo?utm_source=youtube&utm_medium=video&utm_campaign=launch_2026_10
+OpusClip Q&A   https://clips.gungle.ai/blog/supoclip-vs-opusclip?utm_source=reddit&utm_medium=community&utm_campaign=launch_2026_10&utm_content=opusclip_thread
 ```
 
-Hacker News: link the GitHub repo or `https://www.supoclip.com/` **without** tags.
+Hacker News: link the GitHub repo or `https://clips.gungle.ai/` **without** tags.
 
 ## Channel copy
 
@@ -100,9 +100,9 @@ posting, and reply to comments for the first few hours.
 
 ### Show HN
 
-> **Show HN: SupoClip – open-source AI clipper that turns long videos into Shorts**
+> **Show HN: GungleClips – open-source AI clipper that turns long videos into Shorts**
 >
-> SupoClip takes a YouTube link or uploaded video, transcribes it, has an LLM
+> GungleClips takes a YouTube link or uploaded video, transcribes it, has an LLM
 > pick self-contained moments, and renders 9:16 clips with word-synced captions,
 > a hook title, and face-aware framing.
 >
@@ -114,23 +114,23 @@ posting, and reply to comments for the first few hours.
 > Stack: Next.js, FastAPI, ARQ workers on Redis, Postgres, FFmpeg.
 > There's a paid hosted version for people who don't want to run it.
 >
-> Repo: https://github.com/FujiwaraChoki/supoclip
-> Demo: https://www.supoclip.com/demo
+> Repo: https://github.com/gungle-ai/gungleclips
+> Demo: https://clips.gungle.ai/demo
 >
 > I'd love feedback on clip selection quality and the self-hosting experience.
 
 ### Product Hunt
 
 - **Tagline (≤60 chars):** `Open-source AI clipper: long videos into captioned Shorts`
-- **Description (≤260 chars):** `SupoClip finds the best moments in long videos and turns them into vertical, captioned clips for Shorts, Reels, and TikTok. Use the hosted app or self-host it for free with your own AI models, including fully local Whisper + Ollama.`
+- **Description (≤260 chars):** `GungleClips finds the best moments in long videos and turns them into vertical, captioned clips for Shorts, Reels, and TikTok. Use the hosted app or self-host it for free with your own AI models, including fully local Whisper + Ollama.`
 - **First comment:** why it's open source, what self-hosting unlocks, the hosted plans, and one specific question for feedback.
 - **Gallery:** the demo video (below), the editor screenshot, the banner.
 
 ### r/selfhosted
 
-> **SupoClip: self-hosted AI video clipper (long videos → vertical clips), Docker Compose, works with Whisper + Ollama**
+> **GungleClips: self-hosted AI video clipper (long videos → vertical clips), Docker Compose, works with Whisper + Ollama**
 >
-> I build SupoClip, an AGPL-3.0 alternative to tools like OpusClip. It turns
+> I build GungleClips, an AGPL-3.0 alternative to tools like OpusClip. It turns
 > podcasts, streams, and talks into captioned 9:16 clips.
 >
 > - `docker compose up -d --build`: frontend, API, worker, Postgres, Redis
@@ -148,13 +148,13 @@ posting, and reply to comments for the first few hours.
 2. Here's real output from a long-form interview, with links back to each source timestamp: [demo link]
 3. Bring your own AI: OpenAI, Google, Anthropic, OpenRouter, or fully local Whisper + Ollama.
 4. No watermark. No plan limits when self-hosted. AGPL-3.0: [GitHub link]
-5. Comparing tools? Our SupoClip vs OpusClip comparison links a source for every claim: [comparison link]
+5. Comparing tools? Our GungleClips vs OpusClip comparison links a source for every claim: [comparison link]
 
 Attach the demo video (own footage) to tweet 1, not the third-party demo clips.
 
 ### LinkedIn
 
-> Most long-form video gets watched once. We built SupoClip to turn
+> Most long-form video gets watched once. We built GungleClips to turn
 > recordings like podcasts, webinars, and talks into short vertical clips with
 > captions, so one recording becomes a week of posts.
 >
@@ -165,14 +165,14 @@ Attach the demo video (own footage) to tweet 1, not the third-party demo clips.
 
 ### Newsletter blurb
 
-> **SupoClip is open source.** Turn long videos into captioned Shorts, Reels,
+> **GungleClips is open source.** Turn long videos into captioned Shorts, Reels,
 > and TikToks. Use the hosted app, or self-host it free with your own AI models.
 > [See the demo →]
 
 ## Demo video script
 
 Target: 60–75 seconds, 1080×1920 for social or 1920×1080 for Product Hunt and
-YouTube. Record with **footage we own** (e.g. a SupoClip team talk or a
+YouTube. Record with **footage we own** (e.g. a GungleClips team talk or a
 podcast episode with written permission).
 
 | Time | Shot | Voiceover / caption |
@@ -184,7 +184,7 @@ podcast episode with written permission).
 | 35–50s | Editor: trim, change caption style, preview | "Adjust timing and captions before exporting." |
 | 50–60s | Export with the TikTok preset; download completes | "Export for TikTok, Reels, or Shorts. No watermark." |
 | 60–70s | Terminal: `docker compose up -d --build`, then GitHub repo | "It's open source. Run it yourself, or use the hosted app." |
-| End card | Logo + `supoclip.com/demo` | |
+| End card | Logo + `clips.gungle.ai/demo` | |
 
 Don't show a processing time unless it's the real, unedited duration, and say
 which hardware or plan produced it.
@@ -251,7 +251,7 @@ which hardware or plan produced it.
 ### Activation by source (SQL)
 
 ```sql
--- docker exec -it supoclip-postgres psql -U supoclip -d supoclip
+-- docker exec -it gungleclips-postgres psql -U gungleclips -d gungleclips
 SELECT
   COALESCE(a.utm_source, a.referrer_host, '(direct)')            AS source,
   COALESCE(a.utm_campaign, '-')                                   AS campaign,

@@ -26,9 +26,10 @@ export type Attribution = Partial<Record<AttributionField, string>> & {
   captured_at: string;
 };
 
-export const ATTRIBUTION_STORAGE_KEY = "supoclip:attribution:v1";
-export const accountAttributionKey = (userId: string) => `supoclip:attribution:account:${userId}`;
-export const pendingAttributionKey = (userId: string) => `supoclip:attribution:pending:${userId}`;
+export const ATTRIBUTION_STORAGE_KEY = "gungleclips:attribution:v1";
+export const LEGACY_ATTRIBUTION_STORAGE_KEY = "supoclip:attribution:v1";
+export const accountAttributionKey = (userId: string) => `gungleclips:attribution:account:${userId}`;
+export const pendingAttributionKey = (userId: string) => `gungleclips:attribution:pending:${userId}`;
 export const ATTRIBUTION_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 
 const MAX_FIELD_LENGTH: Record<AttributionField, number> = {
@@ -160,8 +161,31 @@ export function attributionMetadata(attribution: Partial<Record<AttributionField
   return metadata;
 }
 
+function legacyFor(key: string): string | undefined {
+  if (key === ATTRIBUTION_STORAGE_KEY) return LEGACY_ATTRIBUTION_STORAGE_KEY;
+  if (key.startsWith("gungleclips:attribution:account:")) {
+    return key.replace("gungleclips:", "supoclip:");
+  }
+  if (key.startsWith("gungleclips:attribution:pending:")) {
+    return key.replace("gungleclips:", "supoclip:");
+  }
+  return undefined;
+}
+
 function readJson(key: string): unknown {
   try {
+    const legacy = legacyFor(key);
+    if (legacy) {
+      const existing = window.localStorage.getItem(key);
+      if (existing == null) {
+        const old = window.localStorage.getItem(legacy);
+        if (old != null) {
+          window.localStorage.setItem(key, old);
+          window.localStorage.removeItem(legacy);
+          return JSON.parse(old);
+        }
+      }
+    }
     return JSON.parse(window.localStorage.getItem(key) ?? "null");
   } catch {
     return null;
@@ -171,6 +195,8 @@ function readJson(key: string): unknown {
 function writeJson(key: string, value: unknown) {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
+    const legacy = legacyFor(key);
+    if (legacy) window.localStorage.removeItem(legacy);
   } catch {
     // Storage can be unavailable (private mode, quotas); attribution is best effort.
   }
@@ -203,6 +229,8 @@ export function attributionVisitKey(attribution: Attribution) {
 function removeKey(key: string) {
   try {
     window.localStorage.removeItem(key);
+    const legacy = legacyFor(key);
+    if (legacy) window.localStorage.removeItem(legacy);
   } catch {
     // Best effort, like every other storage access here.
   }

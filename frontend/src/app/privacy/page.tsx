@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { intlLocale } from "@/i18n/config";
 import { HOSTED_APP_URL, getSiteUrl } from "@/lib/blog-posts";
 import { COMPANY_NAME, COMPANY_REGISTERED_ADDRESS, COMPANY_REGISTRATION_NUMBER } from "@/lib/site";
+import { BrandSurface } from "@/components/marketing/brand-surface";
 
 const LAST_UPDATED = "2026-10-31";
-const CONTACT_EMAIL = "privacy@supoclip.com";
+const CONTACT_EMAIL = "privacy@gungle.ai";
 
 function formatLegalDate(locale: string) {
   return new Intl.DateTimeFormat(intlLocale(locale), { dateStyle: "long", timeZone: "UTC" }).format(
@@ -22,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const url = `${getSiteUrl()}/privacy`;
 
   return {
-    title: { absolute: `SupoClip.com ${t("privacy.title")}` },
+    title: { absolute: `GungleClips ${t("privacy.title")}` },
     description: t("privacy.metaDescription"),
     alternates: { canonical: url },
     openGraph: {
@@ -30,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: t("privacy.ogDescription"),
       type: "website",
       url,
-      siteName: "SupoClip",
+      siteName: "GungleClips",
     },
   };
 }
@@ -60,16 +61,16 @@ export default async function PrivacyPolicyPage() {
   );
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <BrandSurface><main className="min-h-screen text-foreground">
       <header className="border-b bg-background/95">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="SupoClip" width={24} height={24} className="rounded-lg dark:invert" />
+            <Image src="/logo.png" alt="GungleClips" width={24} height={24} />
             <span
               className="text-lg font-bold tracking-tight"
               style={{ fontFamily: "var(--font-syne), var(--font-geist-sans), system-ui" }}
             >
-              SupoClip
+              GungleClips
             </span>
           </Link>
           <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
@@ -87,7 +88,7 @@ export default async function PrivacyPolicyPage() {
             className="text-4xl font-extrabold tracking-tight sm:text-5xl"
             style={{ fontFamily: "var(--font-syne), var(--font-geist-sans), system-ui" }}
           >
-            SupoClip.com {t("privacy.title")}
+            GungleClips {t("privacy.title")}
           </h1>
           <p className="text-sm text-muted-foreground">{t("lastUpdated", { date: updated })}</p>
           <p className="rounded-lg border bg-muted/40 px-4 py-3 text-sm leading-6 text-muted-foreground">
@@ -246,6 +247,6 @@ export default async function PrivacyPolicyPage() {
           </Link>
         </div>
       </article>
-    </main>
+    </main></BrandSurface>
   );
 }

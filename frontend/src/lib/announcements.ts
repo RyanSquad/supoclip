@@ -9,4 +9,4 @@ export type Announcement = {
 
 export type ManagedAnnouncement = Announcement & { isPublished: boolean };
 
-export const ANNOUNCEMENTS_UPDATED_EVENT = "supoclip:announcements-updated";
+export const ANNOUNCEMENTS_UPDATED_EVENT = "gungleclips:announcements-updated";

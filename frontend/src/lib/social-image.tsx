@@ -74,7 +74,7 @@ export async function createSocialImageResponse() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          background: "linear-gradient(145deg, #f5f5f0 0%, #e8e8e3 50%, #ddddd8 100%)",
+          background: "#F5F5F5",
           position: "relative",
           overflow: "hidden",
         }}
@@ -132,49 +132,26 @@ export async function createSocialImageResponse() {
               justifyContent: "center",
               width: 88,
               height: 88,
-              borderRadius: 20,
-              background: "linear-gradient(135deg, #3a3a38 0%, #2a2a28 100%)",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1)",
+              borderRadius: 0,
+              background: "#1DC95C",
+              border: "3px solid #121212",
+              boxShadow: "6px 6px 0 #121212",
             }}
-          >
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#f5f5f0"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="6" cy="6" r="3" />
-              <circle cx="6" cy="18" r="3" />
-              <line x1="20" y1="4" x2="8.12" y2="15.88" />
-              <line x1="14.47" y1="14.48" x2="20" y2="20" />
-              <line x1="8.12" y1="8.12" x2="12" y2="12" />
-            </svg>
-          </div>
+          />
 
           <div
             style={{
               display: "flex",
               alignItems: "baseline",
               fontFamily: "Syne",
-              fontSize: 72,
+              fontSize: 64,
               fontWeight: 800,
-              color: "#1c1c1a",
+              color: "#121212",
               letterSpacing: "-2px",
               lineHeight: 1,
             }}
           >
-            Supo
-            <span
-              style={{
-                color: "#6b6b67",
-              }}
-            >
-              Clip
-            </span>
+            GungleClips
           </div>
 
           <div

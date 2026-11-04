@@ -84,7 +84,7 @@ export function SignUp() {
             disabled={loading}
             minLength={8}
           />
-          <Button type="submit" className="h-11 w-full" disabled={loading}>
+          <Button type="submit" className="marketing-cta h-11 w-full rounded-none" disabled={loading}>
             {loading ? t("signUp.submitting") : t("signUp.submit")}
           </Button>
         </form>

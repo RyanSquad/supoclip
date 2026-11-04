@@ -12,7 +12,7 @@ export function hasSignedBackendAuth(): boolean {
 export function buildBackendAuthHeaders(userId: string): Record<string, string> {
   const secret = getBackendAuthSecret();
   if (!secret) {
-    return { "x-supoclip-user-id": userId };
+    return { "x-gungleclips-user-id": userId };
   }
 
   const timestamp = Math.floor(Date.now() / 1000).toString();
@@ -20,8 +20,8 @@ export function buildBackendAuthHeaders(userId: string): Record<string, string> 
   const signature = crypto.createHmac("sha256", secret).update(payload).digest("hex");
 
   return {
-    "x-supoclip-user-id": userId,
-    "x-supoclip-ts": timestamp,
-    "x-supoclip-signature": signature,
+    "x-gungleclips-user-id": userId,
+    "x-gungleclips-ts": timestamp,
+    "x-gungleclips-signature": signature,
   };
 }

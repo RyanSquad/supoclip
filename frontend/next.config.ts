@@ -56,7 +56,7 @@ export default posthogPersonalApiKey && posthogProjectId
       host: posthogHost.replace(/^https:\/\/(us|eu)\.i\.posthog\.com$/, "https://$1.posthog.com"),
       sourcemaps: {
         enabled: true,
-        releaseName: "supoclip-web",
+        releaseName: "gungleclips-web",
         releaseVersion: process.env.POSTHOG_RELEASE_VERSION?.trim() || undefined,
         deleteAfterUpload: true,
       },

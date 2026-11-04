@@ -44,7 +44,7 @@ async def test_queued_instruction_is_processed_by_the_ai_worker(db_session, monk
         assert result["summary"] == "Made it black and white."
         assert result["document"]["effects"]["saturation"] == 0
         # Nothing landed on the main video queue.
-        assert await redis.zcard("supoclip_tasks") == 0
+        assert await redis.zcard("gungleclips_tasks") == 0
     finally:
         await redis.delete(ai.result_key(job_id), ai.request_key(job_id))
         await JobQueue.close_pool()

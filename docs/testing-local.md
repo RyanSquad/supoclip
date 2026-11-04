@@ -10,7 +10,7 @@ Before starting either backend service, apply migrations to an empty test databa
 
 ```sh
 cd frontend
-DATABASE_URL=postgresql://supoclip@127.0.0.1:55432/supoclip_test pnpm exec prisma migrate deploy
+DATABASE_URL=postgresql://gungleclips@127.0.0.1:55432/gungleclips_test pnpm exec prisma migrate deploy
 cd ..
 ```
 
@@ -18,9 +18,9 @@ Start the API and ARQ worker with the **same** database, Redis, media directory 
 provider environment:
 
 ```sh
-export DATABASE_URL=postgresql+asyncpg://supoclip@127.0.0.1:55432/supoclip_test
+export DATABASE_URL=postgresql+asyncpg://gungleclips@127.0.0.1:55432/gungleclips_test
 export REDIS_HOST=127.0.0.1 REDIS_PORT=56379
-export TEMP_DIR=/tmp/supoclip-local-media
+export TEMP_DIR=/tmp/gungleclips-local-media
 export BACKEND_AUTH_SECRET=local-test-backend-secret
 export SELF_HOST=true
 export YOUTUBE_DOWNLOAD_PROVIDER=yt_dlp YOUTUBE_METADATA_PROVIDER=yt_dlp
@@ -71,7 +71,7 @@ user's database ID and use the same backend secret and Redis port:
 ```sh
 export LOCAL_TEST_USER_ID=TEST_USER_DATABASE_ID
 export LOCAL_TEST_BACKEND_URL=http://127.0.0.1:8100
-export LOCAL_TEST_ARTIFACTS=/tmp/supoclip-local-evidence
+export LOCAL_TEST_ARTIFACTS=/tmp/gungleclips-local-evidence
 backend/.venv/bin/python backend/tests/live/run_local_workflows.py
 ```
 

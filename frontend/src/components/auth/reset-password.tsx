@@ -84,7 +84,7 @@ export function ResetPassword() {
               minLength={8}
               disabled={loading}
             />
-            <Button type="submit" className="h-11 w-full" disabled={loading}>
+            <Button type="submit" className="marketing-cta h-11 w-full rounded-none" disabled={loading}>
               {loading ? t("reset.submitting") : t("reset.submit")}
             </Button>
           </form>

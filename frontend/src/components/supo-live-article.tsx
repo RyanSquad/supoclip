@@ -9,7 +9,7 @@ import { intlLocale } from "@/i18n/config";
 import { type BlogPost, getSiteUrl, HOSTED_APP_URL } from "@/lib/blog-posts";
 import { OPUSCLIP_COMPARISON_HREF, SELF_HOSTING_GUIDE_HREF } from "@/lib/marketing-links";
 
-const repository = "https://github.com/FujiwaraChoki/supoclip";
+const repository = "https://github.com/gungle-ai/gungleclips";
 const workflowIcons = [Upload, Sparkles, ScanFace, Film];
 
 export async function SupoLiveArticle({ post }: { post: BlogPost }) {
@@ -40,8 +40,8 @@ export async function SupoLiveArticle({ post }: { post: BlogPost }) {
         datePublished: post.publishedAt,
         dateModified: post.updatedAt,
         author: { "@type": "Organization", name: post.author },
-        publisher: { "@type": "Organization", name: "SupoClip", url: siteUrl, logo: { "@type": "ImageObject", url: `${siteUrl}/logo.png` } },
-        image: post.image ? [`${siteUrl}${post.image.src}`, `${siteUrl}/blog/supoclip-editor.webp`] : undefined,
+        publisher: { "@type": "Organization", name: "GungleClips", url: siteUrl, logo: { "@type": "ImageObject", url: `${siteUrl}/logo.png` } },
+        image: post.image ? [`${siteUrl}${post.image.src}`, `${siteUrl}/blog/gungleclips-editor.webp`] : undefined,
         articleSection: post.category,
         inLanguage: intlLocale(locale),
         mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
@@ -62,7 +62,7 @@ export async function SupoLiveArticle({ post }: { post: BlogPost }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <header className="border-b">
         <nav aria-label={t("shell.blogNav")} className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-6 py-5">
-          <Link href="/" className="flex items-center gap-2.5 text-xl font-bold"><Image src="/logo.png" alt="" width={30} height={30} className="rounded-lg dark:invert" />SupoClip</Link>
+          <Link href="/" className="flex items-center gap-2.5 text-xl font-bold"><Image src="/logo.png" alt="" width={30} height={30} className="rounded-lg" />GungleClips</Link>
           <Link href="/blog" className="text-sm underline underline-offset-4">{t("shell.allArticles")}</Link>
         </nav>
       </header>
@@ -122,7 +122,7 @@ export async function SupoLiveArticle({ post }: { post: BlogPost }) {
               <thead className="bg-muted">
                 <tr>
                   <th scope="col" className="p-4">{t(`${slug}.comparison.priority`)}</th>
-                  <th scope="col" className="p-4">SupoClip</th>
+                  <th scope="col" className="p-4">GungleClips</th>
                   <th scope="col" className="p-4">supo.live</th>
                 </tr>
               </thead>
@@ -155,8 +155,8 @@ export async function SupoLiveArticle({ post }: { post: BlogPost }) {
             <figcaption className="mt-4 text-xs leading-5 text-muted-foreground">{t(`${slug}.workflow.caption`)}</figcaption>
           </figure>
           <figure className="overflow-hidden rounded-2xl border">
-            <a href="/blog/supoclip-editor.webp" aria-label={t(`${slug}.editor.aria`)}>
-              <Image src="/blog/supoclip-editor.webp" alt={t(`${slug}.editor.alt`)} width={1800} height={1109} sizes="(max-width: 768px) 100vw, 768px" className="h-auto w-full" />
+            <a href="/blog/gungleclips-editor.webp" aria-label={t(`${slug}.editor.aria`)}>
+              <Image src="/blog/gungleclips-editor.webp" alt={t(`${slug}.editor.alt`)} width={1800} height={1109} sizes="(max-width: 768px) 100vw, 768px" className="h-auto w-full" />
             </a>
             <figcaption className="bg-muted/25 px-5 py-4 text-sm leading-6 text-muted-foreground">{t(`${slug}.editor.caption`)}</figcaption>
           </figure>
@@ -207,7 +207,7 @@ export async function SupoLiveArticle({ post }: { post: BlogPost }) {
           <h2>{t(`${slug}.start.heading`)}</h2>
           <p>{t(`${slug}.start.p1`)}</p>
           <section className="rounded-2xl border bg-muted/30 p-6 sm:p-8" aria-label={t("shell.startAria")}>
-            <Image src="/logo.png" alt={t(`${slug}.start.logoAlt`)} width={40} height={40} className="mb-4 rounded-lg dark:invert" />
+            <Image src="/logo.png" alt={t(`${slug}.start.logoAlt`)} width={40} height={40} className="mb-4 rounded-lg" />
             <h3>{t(`${slug}.start.cardTitle`)}</h3>
             <ul className="my-5 space-y-2 text-sm">
               {([0, 1, 2] as const).map((index) => (

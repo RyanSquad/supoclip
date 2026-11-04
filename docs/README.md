@@ -1,6 +1,6 @@
-# SupoClip Documentation
+# GungleClips Documentation
 
-This directory is the canonical documentation hub for SupoClip.
+This directory is the canonical documentation hub for GungleClips.
 
 If you are new to the project, start here:
 
@@ -17,6 +17,9 @@ If you are new to the project, start here:
   - Local development commands
   - First-run checklist
   - Production-minded setup notes
+- [Rebrand migration](./rebrand-migration.md)
+  - SupoClip → GungleClips Docker/DB/MCP/header cutover
+  - External DNS, SES, OAuth, analytics checklist
 - [Configuration](./configuration.md)
   - Required API keys
   - DataFast analytics settings
@@ -51,9 +54,9 @@ If you are new to the project, start here:
   - Auth, fonts, billing, and YouTube issues
   - Performance and recovery guidance
 
-## What SupoClip Is
+## What GungleClips Is
 
-SupoClip is an open-source AI video clipping application. It takes long-form videos, transcribes them, uses an LLM to select the most promising short segments, and renders vertical or source-aspect clips with subtitles and optional effects.
+GungleClips is an open-source AI video clipping application. It takes long-form videos, transcribes them, uses an LLM to select the most promising short segments, and renders vertical or source-aspect clips with subtitles and optional effects.
 
 The current repository snapshot includes:
 

@@ -17,7 +17,7 @@ export default defineConfig({
       NEXT_BUILD_DIR: ".next-polish",
       NEXT_PUBLIC_SELF_HOST: "true", NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3118",
       BETTER_AUTH_URL: "http://127.0.0.1:3118",
-      BETTER_AUTH_SECRET: "supoclip-isolated-browser-test-secret",
+      BETTER_AUTH_SECRET: "gungleclips-isolated-browser-test-secret",
       DATABASE_URL: "postgresql://unused:unused@127.0.0.1:1/unused",
     },
   },

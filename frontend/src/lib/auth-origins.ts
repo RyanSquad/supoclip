@@ -23,7 +23,7 @@ export function getAuthTrustedOrigins(env: AuthOriginEnvironment): string[] {
     // Retain the existing origins for compatibility with hosted deployments.
     "http://localhost:3107",
     "http://sp.localhost:3107",
-    "http://supoclip.localhost:3107",
+    "http://gungleclips.localhost:3107",
     ...(env.BETTER_AUTH_TRUSTED_ORIGINS ?? "").split(",").map(toOrigin),
   ];
   const selfHost = !["false", "0", "no"].includes((env.NEXT_PUBLIC_SELF_HOST ?? "true").toLowerCase());

@@ -229,7 +229,7 @@ class WorkerSettings:
         # frees up; a dead job's post is failed by the stale-publishing sweep.
         func(publish_social_post, timeout=PUBLISH_JOB_TIMEOUT_SECONDS, keep_result=0),
     ]
-    queue_name = "supoclip_tasks"
+    queue_name = "gungleclips_tasks"
     health_check_interval = 30
 
     # Redis settings from environment

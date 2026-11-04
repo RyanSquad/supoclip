@@ -6,16 +6,20 @@
  * approved creator are stored. Storage is a convenience: the server still
  * applies a signup `?ref=` on its own and re-validates every code at checkout.
  */
+import { getStorageItem, removeStorageItem, setStorageItem } from "@/lib/storage-migrate";
+
 export const CREATOR_OFFER_TEXT = "20% off your first 3 months";
 
-const STORAGE_KEY = "supoclip:creator-code:v1";
+const STORAGE_KEY = "gungleclips:creator-code:v1";
+const LEGACY_STORAGE_KEY = "supoclip:creator-code:v1";
 const TTL_MS = 90 * 24 * 60 * 60 * 1000;
 
 type StoredCode = { code: string; saved_at: string };
 
 export function getStoredCreatorCode(): string | null {
   try {
-    const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "null") as StoredCode | null;
+    const raw = getStorageItem(STORAGE_KEY, LEGACY_STORAGE_KEY);
+    const stored = JSON.parse(raw ?? "null") as StoredCode | null;
     if (!stored?.code || Date.now() - new Date(stored.saved_at).getTime() > TTL_MS) return null;
     return stored.code;
   } catch {
@@ -24,19 +28,15 @@ export function getStoredCreatorCode(): string | null {
 }
 
 export function storeCreatorCode(code: string) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ code, saved_at: new Date().toISOString() }));
-  } catch {
-    // Private mode or blocked storage: the offer still applies through the server-side ref.
-  }
+  setStorageItem(
+    STORAGE_KEY,
+    JSON.stringify({ code, saved_at: new Date().toISOString() }),
+    LEGACY_STORAGE_KEY,
+  );
 }
 
 export function clearCreatorCode() {
-  try {
-    window.localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // Nothing stored.
-  }
+  removeStorageItem(STORAGE_KEY, LEGACY_STORAGE_KEY);
 }
 
 /** The normalized code (e.g. `MAYA`) when it belongs to an approved creator, else null. */

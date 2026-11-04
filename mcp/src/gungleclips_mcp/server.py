@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-MCP server for SupoClip — an AI tool that turns long-form videos into short,
+MCP server for GungleClips — an AI tool that turns long-form videos into short,
 vertical, subtitled viral clips.
 
-The server talks to the SupoClip REST API. By default it targets the official
-hosted instance at ``https://api.supoclip.com``; set ``SUPOCLIP_API_URL`` to
-use a self-hosted backend. Authenticate by creating an API key in your SupoClip
-account and exposing it as ``SUPOCLIP_API_KEY``.
+The server talks to the GungleClips REST API. By default it targets the official
+hosted instance at ``https://api.clips.gungle.ai``; set ``GUNGLECLIPS_API_URL`` to
+use a self-hosted backend. Authenticate by creating an API key in your GungleClips
+account and exposing it as ``GUNGLECLIPS_API_KEY``.
 
 Typical workflow:
-    1. ``supoclip_create_clip_task`` with a YouTube URL  -> returns a task_id
-    2. ``supoclip_wait_for_task`` (or poll ``supoclip_get_task``) until done
-    3. ``supoclip_list_clips`` / ``supoclip_download_clip`` to retrieve results
+    1. ``gungleclips_create_clip_task`` with a YouTube URL  -> returns a task_id
+    2. ``gungleclips_wait_for_task`` (or poll ``gungleclips_get_task``) until done
+    3. ``gungleclips_list_clips`` / ``gungleclips_download_clip`` to retrieve results
 """
 
 from __future__ import annotations
@@ -38,15 +38,15 @@ try:  # Python 3.10 lacks typing.Literal niceties only in edge cases; import is 
 except ImportError:  # pragma: no cover
     from typing_extensions import Literal  # type: ignore
 
-from .client import AuthNotConfiguredError, SupoClipClient, SupoClipError
+from .client import AuthNotConfiguredError, GungleClipsClient, GungleClipsError
 from .config import load_settings
 
 SETTINGS = load_settings()
-CLIENT = SupoClipClient(SETTINGS)
+CLIENT = GungleClipsClient(SETTINGS)
 
 
-class SupoClipApiKeyVerifier:
-    """Validate MCP Bearer tokens against the configured SupoClip backend."""
+class GungleClipsApiKeyVerifier:
+    """Validate MCP Bearer tokens against the configured GungleClips backend."""
 
     def __init__(self, api_url: str, timeout: float) -> None:
         self.api_url = api_url.rstrip("/")
@@ -87,7 +87,7 @@ class SupoClipApiKeyVerifier:
         return AccessToken(
             token=token,
             client_id=f"supoclip-api-key-{fingerprint}",
-            scopes=["supoclip"],
+            scopes=["gungleclips"],
         )
 
 
@@ -99,12 +99,12 @@ def _build_mcp() -> FastMCP:
         auth_settings = AuthSettings(
             issuer_url=public_url,
             resource_server_url=public_url,
-            required_scopes=["supoclip"],
+            required_scopes=["gungleclips"],
         )
-        token_verifier = SupoClipApiKeyVerifier(SETTINGS.api_url, SETTINGS.timeout)
+        token_verifier = GungleClipsApiKeyVerifier(SETTINGS.api_url, SETTINGS.timeout)
 
     return FastMCP(
-        "supoclip_mcp",
+        "gungleclips_mcp",
         host=SETTINGS.mcp_host,
         port=SETTINGS.mcp_port,
         auth=auth_settings,
@@ -128,10 +128,10 @@ def _json(data: object) -> str:
     return json.dumps(data, indent=2, default=str, ensure_ascii=False)
 
 
-def _client() -> SupoClipClient:
+def _client() -> GungleClipsClient:
     access_token = get_access_token()
     if access_token and access_token.token:
-        return SupoClipClient(
+        return GungleClipsClient(
             replace(
                 SETTINGS,
                 api_key=access_token.token,
@@ -151,7 +151,7 @@ def tool_errors(func: Callable[..., Awaitable[str]]) -> Callable[..., Awaitable[
             return await func(*args, **kwargs)
         except AuthNotConfiguredError as exc:
             return f"Error: {exc}"
-        except SupoClipError as exc:
+        except GungleClipsError as exc:
             return f"Error: {exc}"
         except Exception as exc:  # pragma: no cover - defensive
             return f"Error: unexpected {type(exc).__name__}: {exc}"
@@ -172,9 +172,9 @@ def _safe_filename(name: str, default: str) -> str:
 # Public, unauthenticated tools
 # --------------------------------------------------------------------------- #
 @mcp.tool(
-    name="supoclip_health",
+    name="gungleclips_health",
     annotations={
-        "title": "SupoClip Health & Config",
+        "title": "GungleClips Health & Config",
         "readOnlyHint": True,
         "destructiveHint": False,
         "idempotentHint": True,
@@ -182,8 +182,8 @@ def _safe_filename(name: str, default: str) -> str:
     },
 )
 @tool_errors
-async def supoclip_health() -> str:
-    """Report SupoClip API status and how this MCP server is configured.
+async def gungleclips_health() -> str:
+    """Report GungleClips API status and how this MCP server is configured.
 
     Use this first to confirm connectivity and that credentials are set up. It
     requires no authentication and reveals no secrets.
@@ -212,7 +212,7 @@ async def supoclip_health() -> str:
 
 
 @mcp.tool(
-    name="supoclip_list_caption_templates",
+    name="gungleclips_list_caption_templates",
     annotations={
         "title": "List Caption Templates",
         "readOnlyHint": True,
@@ -222,11 +222,11 @@ async def supoclip_health() -> str:
     },
 )
 @tool_errors
-async def supoclip_list_caption_templates() -> str:
+async def gungleclips_list_caption_templates() -> str:
     """List the caption/subtitle templates available for clip generation.
 
     Each template id (e.g. ``default``, ``hormozi``, ``mrbeast``) can be passed
-    as ``caption_template`` to ``supoclip_create_clip_task``. No auth required.
+    as ``caption_template`` to ``gungleclips_create_clip_task``. No auth required.
 
     Returns:
         str: JSON ``{"templates": [{"id", "name", "description", "animation",
@@ -237,7 +237,7 @@ async def supoclip_list_caption_templates() -> str:
 
 
 @mcp.tool(
-    name="supoclip_list_transitions",
+    name="gungleclips_list_transitions",
     annotations={
         "title": "List Transition Effects",
         "readOnlyHint": True,
@@ -247,7 +247,7 @@ async def supoclip_list_caption_templates() -> str:
     },
 )
 @tool_errors
-async def supoclip_list_transitions() -> str:
+async def gungleclips_list_transitions() -> str:
     """List available video transition effects. No auth required.
 
     Returns:
@@ -258,7 +258,7 @@ async def supoclip_list_transitions() -> str:
 
 
 @mcp.tool(
-    name="supoclip_broll_status",
+    name="gungleclips_broll_status",
     annotations={
         "title": "B-roll Availability",
         "readOnlyHint": True,
@@ -268,7 +268,7 @@ async def supoclip_list_transitions() -> str:
     },
 )
 @tool_errors
-async def supoclip_broll_status() -> str:
+async def gungleclips_broll_status() -> str:
     """Report whether automatic B-roll overlays are configured on the backend.
 
     If ``configured`` is false, passing ``include_broll=true`` when creating a
@@ -285,7 +285,7 @@ async def supoclip_broll_status() -> str:
 # Authenticated tools — discovery & account
 # --------------------------------------------------------------------------- #
 @mcp.tool(
-    name="supoclip_list_fonts",
+    name="gungleclips_list_fonts",
     annotations={
         "title": "List Fonts",
         "readOnlyHint": True,
@@ -295,11 +295,11 @@ async def supoclip_broll_status() -> str:
     },
 )
 @tool_errors
-async def supoclip_list_fonts() -> str:
+async def gungleclips_list_fonts() -> str:
     """List subtitle fonts available to the authenticated account.
 
     Any returned ``name`` can be used as ``font_family`` in
-    ``supoclip_create_clip_task``. Requires authentication.
+    ``gungleclips_create_clip_task``. Requires authentication.
 
     Returns:
         str: JSON ``{"fonts": [{"name", "display_name", ...}]}``.
@@ -309,7 +309,7 @@ async def supoclip_list_fonts() -> str:
 
 
 @mcp.tool(
-    name="supoclip_billing_summary",
+    name="gungleclips_billing_summary",
     annotations={
         "title": "Billing & Usage Summary",
         "readOnlyHint": True,
@@ -319,7 +319,7 @@ async def supoclip_list_fonts() -> str:
     },
 )
 @tool_errors
-async def supoclip_billing_summary() -> str:
+async def gungleclips_billing_summary() -> str:
     """Get the authenticated account's plan, usage and remaining minutes.
 
     Plans are metered in minutes of source video per month; a video uses its
@@ -341,7 +341,7 @@ async def supoclip_billing_summary() -> str:
 # Authenticated tools — task lifecycle
 # --------------------------------------------------------------------------- #
 @mcp.tool(
-    name="supoclip_create_clip_task",
+    name="gungleclips_create_clip_task",
     annotations={
         "title": "Create Clipping Task",
         "readOnlyHint": False,
@@ -351,7 +351,7 @@ async def supoclip_billing_summary() -> str:
     },
 )
 @tool_errors
-async def supoclip_create_clip_task(
+async def gungleclips_create_clip_task(
     url: str = "",
     title: str = "",
     processing_mode: str = "fast",
@@ -367,14 +367,14 @@ async def supoclip_create_clip_task(
     clip_length: str = "auto",
     clip_lengths: list[str] | None = None,
 ) -> str:
-    """Create a SupoClip task that downloads a video and generates viral short clips.
+    """Create a GungleClips task that downloads a video and generates viral short clips.
 
     Processing is asynchronous: this returns immediately with a ``task_id``.
-    Track progress with ``supoclip_wait_for_task`` or ``supoclip_get_task``, then
-    fetch results with ``supoclip_list_clips`` / ``supoclip_download_clip``.
+    Track progress with ``gungleclips_wait_for_task`` or ``gungleclips_get_task``, then
+    fetch results with ``gungleclips_list_clips`` / ``gungleclips_download_clip``.
 
     Requires authentication. On the hosted service a paid plan / available quota
-    may be required (a 402 error indicates this — see ``supoclip_billing_summary``).
+    may be required (a 402 error indicates this — see ``gungleclips_billing_summary``).
 
     Args:
         url: YouTube or direct video URL to clip.
@@ -395,18 +395,18 @@ async def supoclip_create_clip_task(
     """
     cleaned_url = (url or "").strip()
     if len(cleaned_url) < 4:
-        raise SupoClipError("url is required. Pass a YouTube URL or direct video URL.")
+        raise GungleClipsError("url is required. Pass a YouTube URL or direct video URL.")
 
     valid_lengths = {"auto", "short", "medium", "long", "extra_long"}
     if clip_lengths is not None:
         if not isinstance(clip_lengths, list) or not clip_lengths:
-            raise SupoClipError(
+            raise GungleClipsError(
                 "clip_lengths must be a non-empty list of auto, short, medium, long, or extra_long"
             )
         normalized_lengths: list[str] = []
         for item in clip_lengths:
             if item not in valid_lengths:
-                raise SupoClipError(
+                raise GungleClipsError(
                     "clip_lengths must be auto, short, medium, long, or extra_long"
                 )
             if item not in normalized_lengths:
@@ -414,7 +414,7 @@ async def supoclip_create_clip_task(
         clip_lengths = normalized_lengths
         clip_length = clip_lengths[0]
     elif clip_length not in valid_lengths:
-        raise SupoClipError(
+        raise GungleClipsError(
             "clip_length must be auto, short, medium, long, or extra_long"
         )
     else:
@@ -459,7 +459,7 @@ async def supoclip_create_clip_task(
 
 
 @mcp.tool(
-    name="supoclip_create_clip",
+    name="gungleclips_create_clip",
     annotations={
         "title": "Create Clip",
         "readOnlyHint": False,
@@ -469,18 +469,18 @@ async def supoclip_create_clip_task(
     },
 )
 @tool_errors
-async def supoclip_create_clip(url: str = "") -> str:
-    """Create a SupoClip task from a YouTube or direct video URL.
+async def gungleclips_create_clip(url: str = "") -> str:
+    """Create a GungleClips task from a YouTube or direct video URL.
 
     This is a compatibility alias for clients that fail to pass arguments to
-    the richer ``supoclip_create_clip_task`` tool. Pass the video URL in the
+    the richer ``gungleclips_create_clip_task`` tool. Pass the video URL in the
     ``url`` argument.
     """
-    return await supoclip_create_clip_task(url=url)
+    return await gungleclips_create_clip_task(url=url)
 
 
 @mcp.tool(
-    name="supoclip_list_tasks",
+    name="gungleclips_list_tasks",
     annotations={
         "title": "List Tasks",
         "readOnlyHint": True,
@@ -490,7 +490,7 @@ async def supoclip_create_clip(url: str = "") -> str:
     },
 )
 @tool_errors
-async def supoclip_list_tasks(
+async def gungleclips_list_tasks(
     limit: Annotated[
         int,
         Field(default=50, description="Maximum number of tasks to return.", ge=1, le=200),
@@ -511,7 +511,7 @@ async def supoclip_list_tasks(
 
 
 @mcp.tool(
-    name="supoclip_get_task",
+    name="gungleclips_get_task",
     annotations={
         "title": "Get Task",
         "readOnlyHint": True,
@@ -521,7 +521,7 @@ async def supoclip_list_tasks(
     },
 )
 @tool_errors
-async def supoclip_get_task(
+async def gungleclips_get_task(
     task_id: Annotated[str, Field(description="The task id returned by create_clip_task.", min_length=1)],
 ) -> str:
     """Get a task's status, progress and generated clips.
@@ -541,7 +541,7 @@ async def supoclip_get_task(
 
 
 @mcp.tool(
-    name="supoclip_wait_for_task",
+    name="gungleclips_wait_for_task",
     annotations={
         "title": "Wait For Task",
         "readOnlyHint": True,
@@ -551,7 +551,7 @@ async def supoclip_get_task(
     },
 )
 @tool_errors
-async def supoclip_wait_for_task(
+async def gungleclips_wait_for_task(
     task_id: Annotated[str, Field(description="The task id to wait on.", min_length=1)],
     timeout_seconds: Annotated[
         int,
@@ -565,7 +565,7 @@ async def supoclip_wait_for_task(
 ) -> str:
     """Poll a task until it finishes (completed/error/cancelled) or times out.
 
-    Convenience wrapper around ``supoclip_get_task`` for the asynchronous
+    Convenience wrapper around ``gungleclips_get_task`` for the asynchronous
     pipeline. Reports progress while waiting. Requires authentication.
 
     Args:
@@ -613,7 +613,7 @@ async def supoclip_wait_for_task(
 
 
 @mcp.tool(
-    name="supoclip_list_clips",
+    name="gungleclips_list_clips",
     annotations={
         "title": "List Clips",
         "readOnlyHint": True,
@@ -623,7 +623,7 @@ async def supoclip_wait_for_task(
     },
 )
 @tool_errors
-async def supoclip_list_clips(
+async def gungleclips_list_clips(
     task_id: Annotated[str, Field(description="The task id whose clips to list.", min_length=1)],
 ) -> str:
     """List the generated clips for a task. Requires authentication.
@@ -643,7 +643,7 @@ async def supoclip_list_clips(
 # Authenticated tools — retrieval (download to disk)
 # --------------------------------------------------------------------------- #
 @mcp.tool(
-    name="supoclip_download_clip",
+    name="gungleclips_download_clip",
     annotations={
         "title": "Download Clip",
         "readOnlyHint": True,
@@ -653,9 +653,9 @@ async def supoclip_list_clips(
     },
 )
 @tool_errors
-async def supoclip_download_clip(
+async def gungleclips_download_clip(
     task_id: Annotated[str, Field(description="The task id that owns the clip.", min_length=1)],
-    clip_id: Annotated[str, Field(description="The clip id (from supoclip_list_clips).", min_length=1)],
+    clip_id: Annotated[str, Field(description="The clip id (from gungleclips_list_clips).", min_length=1)],
     filename: Annotated[
         Optional[str],
         Field(default=None, description="Optional output filename; '.mp4' is enforced.", max_length=200),
@@ -663,8 +663,8 @@ async def supoclip_download_clip(
 ) -> str:
     """Download a generated clip's MP4 to the local download directory.
 
-    The file is saved under ``SUPOCLIP_DOWNLOAD_DIR`` (default
-    ``./supoclip-downloads``). Requires authentication and task ownership.
+    The file is saved under ``GUNGLECLIPS_DOWNLOAD_DIR`` (default
+    ``./gungleclips-downloads``). Requires authentication and task ownership.
 
     Args:
         task_id: The owning task id.
@@ -683,7 +683,7 @@ async def supoclip_download_clip(
 
 
 @mcp.tool(
-    name="supoclip_export_clip",
+    name="gungleclips_export_clip",
     annotations={
         "title": "Export Clip (Platform Preset)",
         "readOnlyHint": True,
@@ -693,7 +693,7 @@ async def supoclip_download_clip(
     },
 )
 @tool_errors
-async def supoclip_export_clip(
+async def gungleclips_export_clip(
     task_id: Annotated[str, Field(description="The task id that owns the clip.", min_length=1)],
     clip_id: Annotated[str, Field(description="The clip id to export.", min_length=1)],
     preset: Annotated[
@@ -708,7 +708,7 @@ async def supoclip_export_clip(
     """Export a clip re-encoded for a social platform and save the MP4 locally.
 
     Presets (tiktok/reels/shorts) produce 1080x1920 H.264 with platform-tuned
-    bitrates. Saved under ``SUPOCLIP_DOWNLOAD_DIR``. Requires authentication.
+    bitrates. Saved under ``GUNGLECLIPS_DOWNLOAD_DIR``. Requires authentication.
 
     Args:
         task_id: The owning task id.
@@ -733,7 +733,7 @@ async def supoclip_export_clip(
 # Authenticated tools — management
 # --------------------------------------------------------------------------- #
 @mcp.tool(
-    name="supoclip_cancel_task",
+    name="gungleclips_cancel_task",
     annotations={
         "title": "Cancel Task",
         "readOnlyHint": False,
@@ -743,7 +743,7 @@ async def supoclip_export_clip(
     },
 )
 @tool_errors
-async def supoclip_cancel_task(
+async def gungleclips_cancel_task(
     task_id: Annotated[str, Field(description="The task id to cancel.", min_length=1)],
 ) -> str:
     """Cancel a queued or processing task. Requires authentication.
@@ -759,7 +759,7 @@ async def supoclip_cancel_task(
 
 
 @mcp.tool(
-    name="supoclip_resume_task",
+    name="gungleclips_resume_task",
     annotations={
         "title": "Resume Task",
         "readOnlyHint": False,
@@ -769,7 +769,7 @@ async def supoclip_cancel_task(
     },
 )
 @tool_errors
-async def supoclip_resume_task(
+async def gungleclips_resume_task(
     task_id: Annotated[str, Field(description="The task id to resume.", min_length=1)],
 ) -> str:
     """Re-queue a cancelled or errored task for processing. Requires authentication.
@@ -785,7 +785,7 @@ async def supoclip_resume_task(
 
 
 @mcp.tool(
-    name="supoclip_delete_task",
+    name="gungleclips_delete_task",
     annotations={
         "title": "Delete Task",
         "readOnlyHint": False,
@@ -795,7 +795,7 @@ async def supoclip_resume_task(
     },
 )
 @tool_errors
-async def supoclip_delete_task(
+async def gungleclips_delete_task(
     task_id: Annotated[str, Field(description="The task id to delete.", min_length=1)],
 ) -> str:
     """Permanently delete a task and all of its generated clips.

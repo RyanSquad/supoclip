@@ -203,7 +203,7 @@ def merge_clip_files(paths: Iterable[Path], output_dir: Path) -> Path:
         raise ValueError("No clips provided for merge")
 
     with tempfile.NamedTemporaryFile(
-        "w", suffix=".txt", prefix="supoclip_concat_", delete=False
+        "w", suffix=".txt", prefix="gungleclips_concat_", delete=False
     ) as handle:
         list_path = Path(handle.name)
         for path in input_paths:

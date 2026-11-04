@@ -11,12 +11,12 @@ Intro that the page does not render.
 
 ## 2026-10-24
 
-- **Fixed:** Editing keeps the layout. ([#238](https://github.com/FujiwaraChoki/supoclip/pull/238))
-- **New:** Two sources in one line. ([#227](https://github.com/FujiwaraChoki/supoclip/pull/227), [#228](https://github.com/FujiwaraChoki/supoclip/pull/228))
+- **Fixed:** Editing keeps the layout. ([#238](https://github.com/gungle-ai/gungleclips/pull/238))
+- **New:** Two sources in one line. ([#227](https://github.com/gungle-ai/gungleclips/pull/227), [#228](https://github.com/gungle-ai/gungleclips/pull/228))
 
 ## 2026-10-02
 
-- **Under the hood:** Installs can use a CPU-only image. ([#153](https://github.com/FujiwaraChoki/supoclip/pull/153))
+- **Under the hood:** Installs can use a CPU-only image. ([#153](https://github.com/gungle-ai/gungleclips/pull/153))
 `;
 
 describe("parseChangelog", () => {
@@ -27,14 +27,14 @@ describe("parseChangelog", () => {
     expect(releases[0]?.entries[0]).toEqual({
       category: "fixed",
       text: "Editing keeps the layout.",
-      links: [{ label: "#238", href: "https://github.com/FujiwaraChoki/supoclip/pull/238" }],
+      links: [{ label: "#238", href: "https://github.com/gungle-ai/gungleclips/pull/238" }],
     });
     expect(releases[0]?.entries[1]).toMatchObject({
       category: "new",
       text: "Two sources in one line.",
       links: [
-        { label: "#227", href: "https://github.com/FujiwaraChoki/supoclip/pull/227" },
-        { label: "#228", href: "https://github.com/FujiwaraChoki/supoclip/pull/228" },
+        { label: "#227", href: "https://github.com/gungle-ai/gungleclips/pull/227" },
+        { label: "#228", href: "https://github.com/gungle-ai/gungleclips/pull/228" },
       ],
     });
     expect(releases[1]?.entries[0]?.category).toBe("underTheHood");

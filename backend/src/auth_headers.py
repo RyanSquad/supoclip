@@ -14,9 +14,14 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-USER_ID_HEADER = "x-supoclip-user-id"
-TIMESTAMP_HEADER = "x-supoclip-ts"
-SIGNATURE_HEADER = "x-supoclip-signature"
+USER_ID_HEADER = "x-gungleclips-user-id"
+TIMESTAMP_HEADER = "x-gungleclips-ts"
+SIGNATURE_HEADER = "x-gungleclips-signature"
+
+# Legacy SupoClip headers — accepted for one release during the rebrand.
+_LEGACY_USER_ID_HEADER = "x-supoclip-user-id"
+_LEGACY_TIMESTAMP_HEADER = "x-supoclip-ts"
+_LEGACY_SIGNATURE_HEADER = "x-supoclip-signature"
 
 # Programmatic clients (e.g. the MCP server) authenticate with a per-user API
 # key instead of the frontend's HMAC-signed session headers.
@@ -49,15 +54,19 @@ def extract_api_key(request: Request) -> Optional[str]:
     return None
 
 
+def _header(request: Request, primary: str, legacy: str) -> Optional[str]:
+    return request.headers.get(primary) or request.headers.get(legacy)
+
+
 def _expected_signature(secret: str, user_id: str, timestamp: str) -> str:
     payload = f"{user_id}:{timestamp}".encode("utf-8")
     return hmac.new(secret.encode("utf-8"), payload, hashlib.sha256).hexdigest()
 
 
 def get_signed_user_id(request: Request, config: Config) -> str:
-    user_id = request.headers.get(USER_ID_HEADER)
-    timestamp = request.headers.get(TIMESTAMP_HEADER)
-    signature = request.headers.get(SIGNATURE_HEADER)
+    user_id = _header(request, USER_ID_HEADER, _LEGACY_USER_ID_HEADER)
+    timestamp = _header(request, TIMESTAMP_HEADER, _LEGACY_TIMESTAMP_HEADER)
+    signature = _header(request, SIGNATURE_HEADER, _LEGACY_SIGNATURE_HEADER)
 
     if not user_id or not timestamp or not signature:
         raise HTTPException(status_code=401, detail="Signed authentication required")
@@ -93,13 +102,14 @@ def get_authenticated_user_id(request: Request, config: Config) -> str:
 def _get_authenticated_user_id(request: Request, config: Config) -> str:
     if config.backend_auth_secret:
         has_signed_headers = bool(
-            request.headers.get(TIMESTAMP_HEADER) or request.headers.get(SIGNATURE_HEADER)
+            _header(request, TIMESTAMP_HEADER, _LEGACY_TIMESTAMP_HEADER)
+            or _header(request, SIGNATURE_HEADER, _LEGACY_SIGNATURE_HEADER)
         )
         if has_signed_headers or not config.allow_unsigned_backend_auth:
             return get_signed_user_id(request, config)
 
     if config.allow_unsigned_backend_auth:
-        user_id = request.headers.get(USER_ID_HEADER)
+        user_id = _header(request, USER_ID_HEADER, _LEGACY_USER_ID_HEADER)
         if not user_id:
             raise HTTPException(status_code=401, detail="User authentication required")
         return user_id

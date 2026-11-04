@@ -26,6 +26,7 @@ import { HeroStage, SourceStickers } from "@/components/landing/hero-stage";
 import { ProductFilm } from "@/components/landing/product-film";
 import { PublishSection } from "@/components/landing/publish-section";
 import { Reveal, SectionHeading } from "@/components/landing/reveal";
+import { BrandSurface } from "@/components/marketing/brand-surface";
 import { CreatorOfferBanner } from "@/components/marketing/creator-offer-banner";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SocialProviderIcon } from "@/components/social-provider-icon";
@@ -146,14 +147,14 @@ function PrimaryCta({ authEnabled, label, hostedLabel, className }: {
   className?: string;
 }) {
   return authEnabled ? (
-    <Button asChild size="lg" className={cn("h-12 rounded-full px-7 text-sm", className)}>
+    <Button asChild size="lg" className={cn("marketing-cta h-12 rounded-none px-7 text-sm", className)}>
       <Link href="/sign-up">
         {label}
         <ArrowRight className="size-4" />
       </Link>
     </Button>
   ) : (
-    <Button asChild size="lg" className={cn("h-12 rounded-full px-7 text-sm", className)}>
+    <Button asChild size="lg" className={cn("marketing-cta h-12 rounded-none px-7 text-sm", className)}>
       <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
         {hostedLabel}
         <ExternalLink className="size-4" />
@@ -180,28 +181,28 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <BrandSurface className="min-h-screen text-foreground">
       {authEnabled && <CreatorOfferBanner />}
 
       {/* ─── NAV ─── */}
       <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3">
         <nav
           className={cn(
-            "mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full border pl-4 pr-2 transition-all duration-300",
+            "mx-auto flex h-14 max-w-6xl items-center justify-between rounded-none border pl-4 pr-2 transition-all duration-300",
             scrolled || mobileNavOpen
               ? "border-border bg-background/80 shadow-[0_8px_30px_-12px_oklch(0.2_0.01_50/0.25)] backdrop-blur-xl"
               : "border-transparent bg-transparent",
           )}
         >
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="SupoClip" width={24} height={24} className="rounded-md dark:invert" />
-            <span className="font-display text-[17px] font-bold tracking-tight">SupoClip</span>
+            <Image src="/logo.png" alt="GungleClips" width={24} height={24} />
+            <span className="font-display text-[17px] font-bold tracking-tight text-[var(--gungle-charcoal)]">GungleClips</span>
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
             {NAV_LINKS.map(({ href, key }) => {
               const className =
-                "whitespace-nowrap rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+                "whitespace-nowrap rounded-none px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
               return href.startsWith("#") ? (
                 <a key={key} href={href} className={className}>{t(`nav.${key}`)}</a>
               ) : (
@@ -213,15 +214,15 @@ export default function LandingPage() {
           <div className="hidden items-center gap-1 md:flex">
             {authEnabled ? (
               <>
-                <Button asChild variant="ghost" size="sm" className="rounded-full">
+                <Button asChild variant="ghost" size="sm" className="rounded-none text-[var(--gungle-charcoal)]">
                   <Link href="/sign-in">{t("nav.signIn")}</Link>
                 </Button>
-                <Button asChild size="sm" className="rounded-full px-4">
+                <Button asChild size="sm" className="marketing-cta rounded-none px-4">
                   <Link href="/sign-up">{t("nav.getStarted")}</Link>
                 </Button>
               </>
             ) : (
-              <Button asChild size="sm" className="rounded-full px-4">
+              <Button asChild size="sm" className="rounded-none px-4">
                 <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
                   {t("nav.openHosted")}
                   <ExternalLink className="size-3.5" />
@@ -234,7 +235,7 @@ export default function LandingPage() {
             variant="ghost"
             size="icon"
             onClick={() => setMobileNavOpen((open) => !open)}
-            className="rounded-full md:hidden"
+            className="rounded-none md:hidden"
             aria-label={t("nav.toggleMenu")}
             aria-expanded={mobileNavOpen}
           >
@@ -256,15 +257,15 @@ export default function LandingPage() {
             <div className="mt-2 grid grid-cols-2 gap-2 border-t pt-3">
               {authEnabled ? (
                 <>
-                  <Button asChild variant="outline" className="rounded-full">
+                  <Button asChild variant="outline" className="marketing-outline rounded-none">
                     <Link href="/sign-in" onClick={() => setMobileNavOpen(false)}>{t("nav.signIn")}</Link>
                   </Button>
-                  <Button asChild className="rounded-full">
+                  <Button asChild className="marketing-cta rounded-none">
                     <Link href="/sign-up" onClick={() => setMobileNavOpen(false)}>{t("nav.getStarted")}</Link>
                   </Button>
                 </>
               ) : (
-                <Button asChild className="col-span-2 rounded-full">
+                <Button asChild className="col-span-2 rounded-none">
                   <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
                     {t("nav.openHosted")}
                     <ExternalLink className="size-3.5" />
@@ -302,7 +303,7 @@ export default function LandingPage() {
             >
               {t("hero.titleLine1")}
               <br />
-              <span className="text-muted-foreground/70">{t("hero.titleLine2")}</span>
+              <span className="text-[var(--gungle-muted)]">{t("hero.titleLine2")}</span>
             </h1>
 
             <p
@@ -317,7 +318,7 @@ export default function LandingPage() {
               style={{ animation: "landing-fade-in-up 0.7s ease-out 0.24s both" }}
             >
               <PrimaryCta authEnabled={authEnabled} label={t("hero.startClipping")} hostedLabel={t("hero.useHosted")} />
-              <Button asChild variant="outline" size="lg" className="h-12 rounded-full bg-background px-7 text-sm">
+              <Button asChild variant="outline" size="lg" className="marketing-outline h-12 rounded-none px-7 text-sm">
                 <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
                   <Github className="size-4" />
                   {t("hero.viewSource")}
@@ -396,7 +397,7 @@ export default function LandingPage() {
           />
           <Reveal className="mt-8 flex justify-center">
             <BillingIntervalToggle
-              className="rounded-full bg-background [&_button]:rounded-full"
+              className="rounded-none bg-background [&_button]:rounded-none"
               value={billingInterval}
               onChange={setBillingInterval}
               plan={getPublicBillingPlans()[0]}
@@ -408,16 +409,16 @@ export default function LandingPage() {
               <Reveal key={plan.id} delay={i * 0.08} className="h-full">
                 <div
                   className={cn(
-                    "relative flex h-full flex-col rounded-[26px] border p-7",
+                    "relative flex h-full flex-col rounded-none border-2 border-[var(--gungle-charcoal)] bg-white p-7 text-[var(--gungle-charcoal)]",
                     plan.highlighted
-                      ? "dark bg-background text-foreground shadow-2xl"
-                      : "bg-card",
+                      ? "shadow-[6px_6px_0_#121212] outline outline-2 outline-[var(--gungle-action)] outline-offset-0"
+                      : "shadow-[6px_6px_0_#d4d4d4]",
                   )}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="font-display text-xl font-bold tracking-tight">{plan.name}</h3>
                     {plan.highlighted && (
-                      <span className="rounded-full border px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      <span className="rounded-none border-2 border-[var(--gungle-charcoal)] bg-[var(--gungle-action)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--gungle-charcoal)]">
                         {t("pricing.popular")}
                       </span>
                     )}
@@ -440,7 +441,7 @@ export default function LandingPage() {
                   <ul className="mt-7 flex-1 space-y-3 border-t pt-7">
                     {plan.features.map((feature, index) => (
                       <li key={feature} className="flex items-start gap-3 text-sm">
-                        <Check className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                        <Check className="mt-0.5 size-4 shrink-0 text-[var(--gungle-text-green)]" />
                         {/* The first line is the minute allowance; translate it into videos right there. */}
                         {index === 0 && plan.usageExample ? (
                           <span>
@@ -450,7 +451,7 @@ export default function LandingPage() {
                                 <button
                                   type="button"
                                   aria-label={plan.usageExample}
-                                  className="ml-1 inline-flex translate-y-[2px] rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  className="ml-1 inline-flex translate-y-[2px] rounded-none p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
                                   <Info className="size-3.5" />
                                 </button>
@@ -458,8 +459,7 @@ export default function LandingPage() {
                               <TooltipContent
                                 side="top"
                                 sideOffset={6}
-                                // Light so it stands out on the dark Pro card too.
-                                className="max-w-60 bg-background text-foreground shadow-lg ring-1 ring-border [&_svg]:bg-background [&_svg]:fill-background"
+                                className="max-w-60 rounded-none border-2 border-[var(--gungle-charcoal)] bg-white text-[var(--gungle-charcoal)] shadow-[4px_4px_0_#121212]"
                               >
                                 {plan.usageExample}
                               </TooltipContent>
@@ -484,7 +484,7 @@ export default function LandingPage() {
                     {plan.ctaHref ? (
                       <div className="flex flex-col gap-3">
                         <p className="text-xs leading-relaxed text-muted-foreground">{t("pricing.selfHost.setup")}</p>
-                        <Button asChild variant="outline" size="lg" className="h-11 w-full rounded-full text-sm">
+                        <Button asChild variant="outline" size="lg" className="marketing-outline h-11 w-full rounded-none text-sm">
                           <Link href={SELF_HOSTING_GUIDE_HREF}>
                             {t(`links.${catalogKey(SELF_HOSTING_GUIDE_HREF)}.label`)}
                             <ArrowRight className="size-4" />
@@ -501,14 +501,14 @@ export default function LandingPage() {
                         </a>
                       </div>
                     ) : authEnabled ? (
-                      <Button asChild size="lg" variant={plan.highlighted ? "default" : "outline"} className="h-11 w-full rounded-full text-sm">
+                      <Button asChild size="lg" className={cn("h-11 w-full rounded-none text-sm", plan.highlighted ? "marketing-cta" : "marketing-outline")}>
                         <Link href="/sign-up">
                           {plan.cta}
                           <ArrowRight className="size-4" />
                         </Link>
                       </Button>
                     ) : (
-                      <Button asChild size="lg" variant={plan.highlighted ? "default" : "outline"} className="h-11 w-full rounded-full text-sm">
+                      <Button asChild size="lg" className={cn("h-11 w-full rounded-none text-sm", plan.highlighted ? "marketing-cta" : "marketing-outline")}>
                         <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
                           {t("hero.useHosted")}
                           <ExternalLink className="size-4" />
@@ -545,19 +545,19 @@ export default function LandingPage() {
               <ul className="mt-8 space-y-3 text-sm">
                 {(["license", "docker", "models"] as const).map((fact) => (
                   <li key={fact} className="flex items-start gap-3">
-                    <Check className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                    <Check className="mt-0.5 size-4 shrink-0 text-[var(--gungle-text-green)]" />
                     {t(`openSource.facts.${fact}`)}
                   </li>
                 ))}
               </ul>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Button asChild className="rounded-full">
+                <Button asChild className="marketing-cta rounded-none">
                   <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
                     <Github className="size-4" />
                     {t("pricing.selfHost.cta")}
                   </a>
                 </Button>
-                <Button asChild variant="outline" className="rounded-full bg-background">
+                <Button asChild variant="outline" className="marketing-outline rounded-none">
                   <Link href={SELF_HOSTING_GUIDE_HREF}>{t(`links.${catalogKey(SELF_HOSTING_GUIDE_HREF)}.label`)}</Link>
                 </Button>
               </div>
@@ -565,20 +565,20 @@ export default function LandingPage() {
           </div>
 
           <Reveal delay={0.1} className="min-w-0">
-            <div className="dark overflow-hidden rounded-[22px] border bg-background text-foreground shadow-2xl">
+            <div className="marketing-inverse overflow-hidden rounded-none border-2">
               <div className="flex items-center gap-1.5 border-b px-4 py-3">
                 {[0, 1, 2].map((dot) => (
-                  <span key={dot} className="size-2.5 rounded-full bg-foreground/20" />
+                  <span key={dot} className="size-2.5 rounded-none bg-foreground/20" />
                 ))}
                 <span className="ml-3 font-mono text-[11px] text-muted-foreground">{t("openSource.commandLabel")}</span>
               </div>
               <pre className="overflow-x-auto p-6 font-mono text-[13px] leading-8">
                 <code>
-                  <span className="text-muted-foreground">$ </span>git clone https://github.com/FujiwaraChoki/supoclip{"\n"}
-                  <span className="text-muted-foreground">$ </span>cd supoclip && cp .env.example .env{"\n"}
+                  <span className="text-muted-foreground">$ </span>git clone https://github.com/gungle-ai/gungleclips{"\n"}
+                  <span className="text-muted-foreground">$ </span>cd gungleclips && cp .env.example .env{"\n"}
                   <span className="text-muted-foreground">{t("openSource.comment")}</span>{"\n"}
                   <span className="text-muted-foreground">$ </span>docker compose up -d --build{"\n"}
-                  <span className="text-emerald-400">✓</span> <span className="text-muted-foreground">{t("openSource.ready")}</span>
+                  <span className="text-[var(--gungle-signal)]">✓</span> <span className="text-muted-foreground">{t("openSource.ready")}</span>
                 </code>
               </pre>
             </div>
@@ -611,7 +611,7 @@ export default function LandingPage() {
                       {t(`links.${catalogKey(resource.href)}.description`)}
                     </span>
                   </span>
-                  <span className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-full border transition-colors group-hover:bg-foreground group-hover:text-background">
+                  <span className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-none border transition-colors group-hover:bg-foreground group-hover:text-background">
                     <ArrowUpRight className="size-4" />
                   </span>
                 </Link>
@@ -624,10 +624,10 @@ export default function LandingPage() {
       {/* ─── FINAL CTA ─── */}
       <section className="px-3 pb-24 md:pb-32">
         <Reveal>
-          <div className="dark relative mx-auto max-w-6xl overflow-hidden rounded-[36px] bg-background px-6 py-20 text-center text-foreground md:py-28">
+          <div className="marketing-inverse relative mx-auto max-w-6xl overflow-hidden rounded-none px-6 py-20 text-center md:py-28">
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]"
+              className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]"
             />
             <div className="relative">
               <h2 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-[1.02] tracking-[-0.03em] text-balance sm:text-6xl">
@@ -636,26 +636,30 @@ export default function LandingPage() {
               <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">{t("cta.body")}</p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 <PrimaryCta authEnabled={authEnabled} label={t("nav.getStarted")} hostedLabel={t("nav.openHosted")} />
-                <a
-                  href={APP_STORE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={t("hero.appStoreAria")}
-                  className="flex items-center"
-                >
-                  <Image src="/app-store-badge.svg" alt={t("hero.appStoreAlt")} width={135} height={40} className="h-12 w-auto" />
-                </a>
+                {APP_STORE_URL ? (
+                  <a
+                    href={APP_STORE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={t("hero.appStoreAria")}
+                    className="flex items-center"
+                  >
+                    <Image src="/app-store-badge.svg" alt={t("hero.appStoreAlt")} width={135} height={40} className="h-12 w-auto" />
+                  </a>
+                ) : null}
               </div>
-              <a href={PRODUCT_HUNT_URL} target="_blank" rel="noopener noreferrer" className="mt-10 inline-block opacity-80 transition-opacity hover:opacity-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={PRODUCT_HUNT_BADGE_URL} alt={t("hero.productHuntAlt")} width={200} height={43} />
-              </a>
+              {PRODUCT_HUNT_URL && PRODUCT_HUNT_BADGE_URL ? (
+                <a href={PRODUCT_HUNT_URL} target="_blank" rel="noopener noreferrer" className="mt-10 inline-block opacity-80 transition-opacity hover:opacity-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={PRODUCT_HUNT_BADGE_URL} alt={t("hero.productHuntAlt")} width={200} height={43} />
+                </a>
+              ) : null}
             </div>
           </div>
         </Reveal>
       </section>
 
       <SiteFooter />
-    </div>
+    </BrandSurface>
   );
 }

@@ -8,15 +8,20 @@ import { useLocale, useTranslations } from "next-intl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAnnouncements } from "@/hooks/use-announcements";
 import { intlLocale } from "@/i18n/config";
+import { getStorageItem, setStorageItem } from "@/lib/storage-migrate";
 import { cn } from "@/lib/utils";
 
-const READ_EVENT = "supoclip:announcements-read";
+const READ_EVENT = "gungleclips:announcements-read";
 const memoryRead = new Map<string, string[]>();
+
+function legacyKey(key: string) {
+  return key.replace(/^gungleclips:/, "supoclip:");
+}
 
 function readIds(key: string): string[] {
   if (memoryRead.has(key)) return memoryRead.get(key)!;
   try {
-    const value: unknown = JSON.parse(window.localStorage.getItem(key) ?? "[]");
+    const value: unknown = JSON.parse(getStorageItem(key, legacyKey(key)) ?? "[]");
     return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
   } catch {
     return memoryRead.get(key) ?? [];
@@ -32,7 +37,7 @@ export function Announcements({ userId, compact = false, landing = false, classN
 }) {
   const t = useTranslations("shell");
   const locale = useLocale();
-  const key = `supoclip:announcements-read:${userId ?? "visitor"}`;
+  const key = `gungleclips:announcements-read:${userId ?? "visitor"}`;
   const [read, setRead] = useState<{ key: string; ids: string[] } | null>(null);
   const [open, setOpen] = useState(false);
   const announcements = useAnnouncements();
@@ -67,7 +72,7 @@ export function Announcements({ userId, compact = false, landing = false, classN
     const ids = announcements.map((item) => item.id);
     setRead({ key, ids });
     try {
-      window.localStorage.setItem(key, JSON.stringify(ids));
+      setStorageItem(key, JSON.stringify(ids), legacyKey(key));
       memoryRead.delete(key);
     } catch {
       // The badge still clears for this visit when browser storage is unavailable.

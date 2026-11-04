@@ -20,7 +20,7 @@ describe("buildBackendAuthHeaders", () => {
     delete process.env.BACKEND_AUTH_SECRET;
 
     expect(buildBackendAuthHeaders("user-1")).toEqual({
-      "x-supoclip-user-id": "user-1",
+      "x-gungleclips-user-id": "user-1",
     });
     expect(getBackendAuthSecret()).toBeNull();
     expect(hasSignedBackendAuth()).toBe(false);
@@ -30,7 +30,7 @@ describe("buildBackendAuthHeaders", () => {
     process.env.BACKEND_AUTH_SECRET = "   ";
 
     expect(buildBackendAuthHeaders("user-1")).toEqual({
-      "x-supoclip-user-id": "user-1",
+      "x-gungleclips-user-id": "user-1",
     });
     expect(getBackendAuthSecret()).toBeNull();
     expect(hasSignedBackendAuth()).toBe(false);
@@ -43,9 +43,9 @@ describe("buildBackendAuthHeaders", () => {
     expect(getBackendAuthSecret()).toBe("secret");
     expect(hasSignedBackendAuth()).toBe(true);
     expect(buildBackendAuthHeaders("user-1")).toEqual({
-      "x-supoclip-user-id": "user-1",
-      "x-supoclip-ts": "1700000000",
-      "x-supoclip-signature":
+      "x-gungleclips-user-id": "user-1",
+      "x-gungleclips-ts": "1700000000",
+      "x-gungleclips-signature":
         "cceb65b01012f5596122712d023d1def6663579f457362796a52133b3875c545",
     });
   });
